@@ -10,13 +10,13 @@
     "clean": "node-gyp clean"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "lpradopostigo@gmail.com",
+  "license": "MIT",
   "devDependencies": {
-    "node-gyp": "^8.4.1"
+    "node-gyp": "^8.4.1",
+    "node-api-headers": "^0.0.1"
   },
   "dependencies": {
-    "node-addon-api": "^4.2.0",
-    "node-api-headers": "^0.0.1"
+    "node-addon-api": "^4.2.0"
   }
 }
