@@ -1,0 +1,22 @@
+{
+  "name": "testsoundio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "gypfile": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node-gyp rebuild && cp cpp_src/lib/bass/x64/bass.dll build/Release",
+    "clean": "node-gyp clean"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "node-gyp": "^8.4.1"
+  },
+  "dependencies": {
+    "node-addon-api": "^4.2.0",
+    "node-api-headers": "^0.0.1"
+  }
+}
