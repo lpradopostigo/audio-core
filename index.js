@@ -6,12 +6,15 @@ audio.play()
 setTimeout(function () {
     audio.pause()
     console.log('pause')
-}, 5000)
+}, 2000)
 
 setTimeout(function () {
     audio.play()
     console.log('resume')
-}, 10000)
+    audio.setPosition(100)
+    console.log(audio.getPosition())
+
+}, 4000)
 
 
 setInterval(() => {}, 1 << 30);
