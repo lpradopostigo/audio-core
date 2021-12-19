@@ -48,3 +48,18 @@ void AudioPlayer::SetVolume(float value) const {
   BASS_ChannelSetAttribute(this->stream, BASS_ATTRIB_VOL, value);
 }
 
+void AudioPlayer::SetFileFromMemory(const unsigned char*file, QWORD length) {
+  const DWORD state = BASS_ChannelIsActive(this->stream);
+  if (state == BASS_ACTIVE_PLAYING) {
+    std::cerr << "cannot set a file while there is an audio playing" << std::endl;
+    return;
+  }
+
+  this->stream = BASS_StreamCreateFile(true, file, 0, length, 0);
+  const auto error =BASS_ErrorGetCode();
+  if(error != BASS_OK){
+    std::cout << error << std::endl;
+  }
+
+}
+

@@ -90,10 +90,3 @@ Napi::Value AudioPlayerWrapper::GetPosition(const Napi::CallbackInfo &info) {
   const auto pos = this->audioPlayer->GetPosition();
   return Napi::Number::New(info.Env(), pos);
 }
-
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  AudioPlayerWrapper::Init(env, exports);
-  return exports;
-}
-
-NODE_API_MODULE(NODE_GYP_MODULE_NAME, Init)

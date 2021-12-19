@@ -3,6 +3,7 @@
     {
       "target_name": "audio_player",
       "sources": [
+        "cpp_src/binding.cpp",
         "cpp_src/AudioPlayerWrapper.cpp",
         "cpp_src/AudioPlayer.cpp"
       ],
