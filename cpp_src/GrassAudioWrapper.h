@@ -1,13 +1,13 @@
 #pragma once
 #include "napi.h"
-#include "AudioPlayer.h"
+#include "GrassAudio.h"
 
-class AudioPlayerWrapper : public Napi::ObjectWrap<AudioPlayerWrapper> {
+class GrassAudioWrapper : public Napi::ObjectWrap<GrassAudioWrapper> {
  public:
   static Napi::Object Init(Napi::Env env, Napi::Object exports);
-  explicit AudioPlayerWrapper(const Napi::CallbackInfo &info);
+  explicit GrassAudioWrapper(const Napi::CallbackInfo &info);
  private:
-  AudioPlayer *audioPlayer;
+  GrassAudio *audioPlayer;
 
   void SetFile(const Napi::CallbackInfo &info);
   void Play(const Napi::CallbackInfo &info);

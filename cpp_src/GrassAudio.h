@@ -2,10 +2,10 @@
 #include <string>
 #include "bass.h"
 
-class AudioPlayer {
+class GrassAudio {
  public:
-  AudioPlayer();
-  ~AudioPlayer();
+  GrassAudio();
+  ~GrassAudio();
   void SetFile(const std::string &path);
   void SetFileFromMemory(const unsigned char *file, QWORD length);
   void Play() const;

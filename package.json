@@ -1,22 +1,29 @@
 {
-  "name": "testsoundio",
+  "name": "grass_audio",
   "version": "1.0.0",
-  "description": "",
+  "description": "audio player class, using the bass library as engine",
   "main": "index.js",
+  "types": "index.d.ts",
   "gypfile": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "node-gyp rebuild && cp cpp_src/lib/bass/x64/bass.dll build/Release",
-    "clean": "node-gyp clean"
+    "dev:build": "node-gyp rebuild && cp cpp_src/lib/bass/x64/bass.dll build/Release",
+    "dev:clean": "node-gyp clean",
+    "prod:build": "npm run dev:clean && npm run dev:build && cp build/Release/grass_audio.node bin/ &&  cp build/Release/bass.dll bin/"
   },
-  "keywords": [],
+  "keywords": [
+    "node",
+    "audio",
+    "player",
+    "bass",
+    "wrapper"
+  ],
   "author": "lpradopostigo@gmail.com",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^17.0.1",
+    "node-api-headers": "^0.0.1",
     "node-gyp": "^8.4.1",
-    "node-api-headers": "^0.0.1"
-  },
-  "dependencies": {
+    "typescript": "^4.5.4",
     "node-addon-api": "^4.2.0"
   }
 }

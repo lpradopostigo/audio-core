@@ -1,34 +1,34 @@
-#include "AudioPlayerWrapper.h"
+#include "GrassAudioWrapper.h"
 
-Napi::Object AudioPlayerWrapper::Init(Napi::Env env, Napi::Object exports) {
-  Napi::Function func = DefineClass(env, "AudioPlayerWrapper", {
-      InstanceMethod("setFile", &AudioPlayerWrapper::SetFile),
-      InstanceMethod("play", &AudioPlayerWrapper::Play),
-      InstanceMethod("pause", &AudioPlayerWrapper::Pause),
-      InstanceMethod("stop", &AudioPlayerWrapper::Stop),
-      InstanceMethod("setPosition", &AudioPlayerWrapper::SetPosition),
-      InstanceMethod("setVolume", &AudioPlayerWrapper::SetVolume),
-      InstanceMethod("getPosition", &AudioPlayerWrapper::GetPosition),
+Napi::Object GrassAudioWrapper::Init(Napi::Env env, Napi::Object exports) {
+  Napi::Function func = DefineClass(env, "GrassAudio", {
+      InstanceMethod("setFile", &GrassAudioWrapper::SetFile),
+      InstanceMethod("play", &GrassAudioWrapper::Play),
+      InstanceMethod("pause", &GrassAudioWrapper::Pause),
+      InstanceMethod("stop", &GrassAudioWrapper::Stop),
+      InstanceMethod("setPosition", &GrassAudioWrapper::SetPosition),
+      InstanceMethod("setVolume", &GrassAudioWrapper::SetVolume),
+      InstanceMethod("getPosition", &GrassAudioWrapper::GetPosition),
   });
 
   auto *constructor = new Napi::FunctionReference();
   *constructor = Napi::Persistent(func);
 
-  exports.Set("AudioPlayerWrapper", func);
+  exports.Set("GrassAudio", func);
   env.SetInstanceData<Napi::FunctionReference>(constructor);
 
   return exports;
 }
 
-AudioPlayerWrapper::AudioPlayerWrapper(const Napi::CallbackInfo &info) : ObjectWrap(info) {
+GrassAudioWrapper::GrassAudioWrapper(const Napi::CallbackInfo &info) : ObjectWrap(info) {
   if (info.Length() != 0) {
     Napi::TypeError::New(info.Env(), "Number expected").ThrowAsJavaScriptException();
   }
 
-  this->audioPlayer = new AudioPlayer();
+  this->audioPlayer = new GrassAudio();
 }
 
-void AudioPlayerWrapper::SetFile(const Napi::CallbackInfo &info) {
+void GrassAudioWrapper::SetFile(const Napi::CallbackInfo &info) {
   if (info.Length() != 1 || !info[0].IsString()) {
     Napi::TypeError::New(info.Env(), "string expected").ThrowAsJavaScriptException();
   }
@@ -36,7 +36,7 @@ void AudioPlayerWrapper::SetFile(const Napi::CallbackInfo &info) {
   auto path = info[0].As<Napi::String>();
   this->audioPlayer->SetFile(path);
 }
-void AudioPlayerWrapper::Play(const Napi::CallbackInfo &info) {
+void GrassAudioWrapper::Play(const Napi::CallbackInfo &info) {
   if (info.Length() != 0) {
     Napi::TypeError::New(info.Env(), "string expected").ThrowAsJavaScriptException();
   }
@@ -44,7 +44,7 @@ void AudioPlayerWrapper::Play(const Napi::CallbackInfo &info) {
   this->audioPlayer->Play();
 }
 
-void AudioPlayerWrapper::Pause(const Napi::CallbackInfo &info) {
+void GrassAudioWrapper::Pause(const Napi::CallbackInfo &info) {
   if (info.Length() != 0) {
     Napi::TypeError::New(info.Env(), "this method does not receive any arguments")
         .ThrowAsJavaScriptException();
@@ -53,7 +53,7 @@ void AudioPlayerWrapper::Pause(const Napi::CallbackInfo &info) {
   this->audioPlayer->Pause();
 }
 
-void AudioPlayerWrapper::Stop(const Napi::CallbackInfo &info) {
+void GrassAudioWrapper::Stop(const Napi::CallbackInfo &info) {
   if (info.Length() != 0) {
     Napi::TypeError::New(info.Env(), "this method does not receive any arguments").
         ThrowAsJavaScriptException();
@@ -63,7 +63,7 @@ void AudioPlayerWrapper::Stop(const Napi::CallbackInfo &info) {
 
 }
 
-void AudioPlayerWrapper::SetPosition(const Napi::CallbackInfo &info) {
+void GrassAudioWrapper::SetPosition(const Napi::CallbackInfo &info) {
   if (info.Length() != 1 || !info[0].IsNumber()) {
     Napi::TypeError::New(info.Env(), "expected number").ThrowAsJavaScriptException();
   }
@@ -72,7 +72,7 @@ void AudioPlayerWrapper::SetPosition(const Napi::CallbackInfo &info) {
   this->audioPlayer->SetPosition(pos);
 }
 
-void AudioPlayerWrapper::SetVolume(const Napi::CallbackInfo &info) {
+void GrassAudioWrapper::SetVolume(const Napi::CallbackInfo &info) {
   if (info.Length() != 1 || !info[0].IsNumber()) {
     Napi::TypeError::New(info.Env(), "expected number").ThrowAsJavaScriptException();
   }
@@ -81,7 +81,7 @@ void AudioPlayerWrapper::SetVolume(const Napi::CallbackInfo &info) {
   this->audioPlayer->SetVolume(static_cast<int>(pos) >= 1 ? 1 : pos);
 }
 
-Napi::Value AudioPlayerWrapper::GetPosition(const Napi::CallbackInfo &info) {
+Napi::Value GrassAudioWrapper::GetPosition(const Napi::CallbackInfo &info) {
   if (info.Length() != 0) {
     Napi::TypeError::New(info.Env(), "this method does not receive any arguments").
         ThrowAsJavaScriptException();

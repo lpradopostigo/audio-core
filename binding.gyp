@@ -1,11 +1,11 @@
 {
   "targets": [
     {
-      "target_name": "audio_player",
+      "target_name": "grass_audio",
       "sources": [
         "cpp_src/binding.cpp",
-        "cpp_src/AudioPlayerWrapper.cpp",
-        "cpp_src/AudioPlayer.cpp"
+        "cpp_src/GrassAudioWrapper.cpp",
+        "cpp_src/GrassAudio.cpp"
       ],
       "conditions": [
         [

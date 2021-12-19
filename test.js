@@ -1,5 +1,6 @@
-const testAddon = require('./build/Release/audio_player.node');
-const audio = new testAddon.AudioPlayerWrapper()
+// const GrassAudio = require ('./build/Release/grass_audio.node').GrassAudio
+const  GrassAudio  = require ('./index')
+const audio = new GrassAudio()
 audio.setFile("1.wav")
 
 audio.play()

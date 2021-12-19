@@ -1,6 +1,6 @@
 #include <iostream>
 #include "bass.h"
-#include "AudioPlayer.h"
+#include "GrassAudio.h"
 #include <cstdio>
 
 #include <fstream>
@@ -23,7 +23,7 @@ using namespace std;
 int main() {
   BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 10000);
   const auto file = ReadFile("1.wav");
-  auto player = new AudioPlayer();
+  auto player = new GrassAudio();
 //  player->SetFile("1.wav");
   player->SetFileFromMemory(file.data(), file.size());
   player->SetPosition(50);
