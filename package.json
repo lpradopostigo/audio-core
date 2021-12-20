@@ -1,6 +1,6 @@
 {
   "name": "grass_audio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "audio player class, using the bass library as engine",
   "main": "index.js",
   "types": "index.d.ts",
