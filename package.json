@@ -1,14 +1,14 @@
 {
-  "name": "grass_audio",
-  "version": "1.0.1",
+  "name": "grass-audio",
+  "version": "0.1.0",
   "description": "audio player class, using the bass library as engine",
   "main": "index.js",
   "types": "index.d.ts",
   "gypfile": true,
   "scripts": {
-    "dev:build": "node-gyp rebuild && cp cpp_src/lib/bass/x64/bass.dll build/Release",
-    "dev:clean": "node-gyp clean",
-    "prod:build": "npm run dev:clean && npm run dev:build && cp build/Release/grass_audio.node bin/ &&  cp build/Release/bass.dll bin/"
+    "dev:build": "tsc && node-gyp rebuild && cp cpp_src/lib/bass/x64/bass.dll build/Release/",
+    "clean": "node-gyp clean",
+    "prod:build": "tsc && node-gyp clean && node-gyp configure && node-gyp build --release && cp cpp_src/lib/bass/x64/bass.dll build/Release/  && cp build/Release/grass_audio.node bin/ build/Release/bass.dll bin/win/x64"
   },
   "keywords": [
     "node",
@@ -21,10 +21,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^17.0.1",
+    "copyfiles": "^2.4.1",
     "node-addon-api": "^4.2.0",
     "node-api-headers": "^0.0.1",
     "node-gyp": "^8.4.1",
     "prettier": "^2.5.1",
+    "run-script-os": "^1.1.6",
     "typescript": "^4.5.4"
   }
 }

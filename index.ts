@@ -18,4 +18,5 @@ export interface GrassAudio {
   setVolume(volume: number): void;
 }
 
-module.exports = require("./bin/grass_audio.node").GrassAudio as GrassAudio;
+module.exports = require("./bin/win/x64/grass_audio.node")
+  .GrassAudio as GrassAudio;

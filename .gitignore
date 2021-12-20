@@ -5,3 +5,5 @@ cmake-build-debug
 build
 dist
 .idea
+*.tgz
+grass-audio-*/
