@@ -7,14 +7,15 @@
 #include <vector>
 
 std::vector<unsigned char> ReadFile(const char *filename) {
+  std::streampos fileSize;
   std::ifstream file(filename, std::ios::binary);
 
   file.seekg(0, std::ios::end);
-  const std::streampos fileSize = file.tellg();
+  fileSize = file.tellg();
   file.seekg(0, std::ios::beg);
 
   std::vector<unsigned char> fileData(fileSize);
-  file.read((char *) &fileData[0], fileSize);
+  file.read(( char *) &fileData[0], fileSize);
   return fileData;
 }
 
@@ -22,10 +23,10 @@ using namespace std;
 
 int main() {
   BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 10000);
-  const auto file = ReadFile("1.wav");
+//  const auto file = ReadFile("../1.wav");
   auto player = new GrassAudio();
-//  player->SetFile("1.wav");
-  player->SetFileFromMemory(file.data(), file.size());
+  player->SetFile("../1.wav");
+//  player->SetFileFromMemory(file.data(), file.size());
   player->SetPosition(50);
   player->Play();
   Sleep(1000);

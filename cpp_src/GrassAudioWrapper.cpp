@@ -3,6 +3,7 @@
 Napi::Object GrassAudioWrapper::Init(Napi::Env env, Napi::Object exports) {
   Napi::Function func = DefineClass(env, "GrassAudio", {
       InstanceMethod("setFile", &GrassAudioWrapper::SetFile),
+      InstanceMethod("setFileFromMemory", &GrassAudioWrapper::SetFileFromMemory),
       InstanceMethod("play", &GrassAudioWrapper::Play),
       InstanceMethod("pause", &GrassAudioWrapper::Pause),
       InstanceMethod("stop", &GrassAudioWrapper::Stop),
@@ -89,4 +90,13 @@ Napi::Value GrassAudioWrapper::GetPosition(const Napi::CallbackInfo &info) {
 
   const auto pos = this->audioPlayer->GetPosition();
   return Napi::Number::New(info.Env(), pos);
+}
+
+void GrassAudioWrapper::SetFileFromMemory(const Napi::CallbackInfo &info) {
+  if (info.Length() != 1 || !info[0].IsBuffer()) {
+    Napi::TypeError::New(info.Env(), "buffer expected").ThrowAsJavaScriptException();
+  }
+  auto path = info[0].As<Napi::Buffer<uint8_t>>();
+
+  this->audioPlayer->SetFileFromMemory(path.Data(), path.Length());
 }

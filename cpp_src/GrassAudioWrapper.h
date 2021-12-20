@@ -10,6 +10,7 @@ class GrassAudioWrapper : public Napi::ObjectWrap<GrassAudioWrapper> {
   GrassAudio *audioPlayer;
 
   void SetFile(const Napi::CallbackInfo &info);
+  void SetFileFromMemory(const Napi::CallbackInfo &info);
   void Play(const Napi::CallbackInfo &info);
   void Pause(const Napi::CallbackInfo &info);
   void Stop(const Napi::CallbackInfo &info);
