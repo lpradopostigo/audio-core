@@ -1,23 +1,21 @@
 export interface GrassAudio {
-    new(): GrassAudio
+  new (): GrassAudio;
 
-    setFile(path: string): void;
+  setFile(path: string): void;
 
-    setFileFromMemory(buffer: Buffer): void;
+  setFileFromMemory(buffer: Buffer): void;
 
-    play(): void;
+  play(): void;
 
-    pause(): void;
+  pause(): void;
 
-    stop(): void;
+  stop(): void;
 
-    setPosition(position: number): void;
+  setPosition(position: number): void;
 
-    getPosition(): number;
+  getPosition(): number;
 
-    setVolume(volume: number): void;
+  setVolume(volume: number): void;
 }
 
-module.exports = require('./bin/grass_audio.node').GrassAudio as GrassAudio
-
-
+module.exports = require("./bin/grass_audio.node").GrassAudio as GrassAudio;
