@@ -2,12 +2,12 @@
 #include "grass_audio.h"
 #include "callable_to_pointer.hpp"
 
-[[maybe_unused]] grass_audio::grass_audio() {
+grass_audio::grass_audio() {
   BASS_Init(-1, 44100, 0, nullptr, nullptr);
   BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 1000);
 }
 
-[[maybe_unused]] void grass_audio::set_file(const char *path) {
+void grass_audio::set_file(const char *path) {
   const DWORD state = BASS_ChannelIsActive(this->stream);
   if (state == BASS_ACTIVE_PLAYING) {
     std::cerr << "cannot set a file while there is an audio playing" << std::endl;
@@ -17,11 +17,11 @@
   this->stream = BASS_StreamCreateFile(false, path, 0, 0, 0);
 }
 
-[[maybe_unused]] void grass_audio::play() const {
+void grass_audio::play() const {
   BASS_ChannelPlay(this->stream, FALSE);
 }
 
-[[maybe_unused]] void grass_audio::pause() const {
+void grass_audio::pause() const {
   BASS_ChannelPause(this->stream);
 }
 
@@ -29,28 +29,28 @@ grass_audio::~grass_audio() {
   BASS_Free();
 }
 
-[[maybe_unused]] void grass_audio::stop() const {
+void grass_audio::stop() const {
   this->pause();
   this->set_position(0);
 }
 
-[[maybe_unused]] void grass_audio::set_position(double position) const {
+void grass_audio::set_position(double position) const {
   BASS_ChannelSetPosition(this->stream,
                           BASS_ChannelSeconds2Bytes(this->stream, position),
                           BASS_POS_BYTE);
 
 }
 
-[[maybe_unused]] double grass_audio::get_position() const {
+double grass_audio::get_position() const {
   const QWORD position_in_bytes = BASS_ChannelGetPosition(this->stream, BASS_POS_BYTE);
   return BASS_ChannelBytes2Seconds(this->stream, position_in_bytes);
 }
 
-[[maybe_unused]] void grass_audio::set_volume(float value) const {
+void grass_audio::set_volume(float value) const {
   BASS_ChannelSetAttribute(this->stream, BASS_ATTRIB_VOL, value);
 }
 
-[[maybe_unused]] void grass_audio::set_file_from_memory(const unsigned char *file, QWORD length) {
+void grass_audio::set_file_from_memory(const unsigned char *file, QWORD length) {
   const DWORD state = BASS_ChannelIsActive(this->stream);
   if (state == BASS_ACTIVE_PLAYING) {
     std::cerr << "cannot set a file while there is an audio playing" << std::endl;
@@ -65,9 +65,9 @@ grass_audio::~grass_audio() {
 
 }
 
-[[maybe_unused]] DWORD grass_audio::on_position_reached(const std::function<void()> &callback,
-                                                        double position,
-                                                        bool remove_listener) const {
+DWORD grass_audio::on_position_reached(const std::function<void()> &callback,
+                                       double position,
+                                       bool remove_listener) const {
   const auto c_callback = callable_to_pointer([&callback](HSYNC, DWORD, DWORD, void *) { callback(); });
   const QWORD position_in_bytes = BASS_ChannelSeconds2Bytes(this->stream, position);
   return BASS_ChannelSetSync(this->stream, BASS_SYNC_POS | (remove_listener ? BASS_SYNC_ONETIME : 0),
@@ -75,18 +75,18 @@ grass_audio::~grass_audio() {
                              c_callback, nullptr);
 }
 
-[[maybe_unused]] DWORD grass_audio::on_end(const std::function<void()> &callback, bool remove_listener) const {
+DWORD grass_audio::on_end(const std::function<void()> &callback, bool remove_listener) const {
   const auto c_callback = callable_to_pointer([&callback](HSYNC, DWORD, DWORD, void *) { callback(); });
   return BASS_ChannelSetSync(this->stream, BASS_SYNC_END | (remove_listener ? BASS_SYNC_ONETIME : 0),
                              0,
                              c_callback, nullptr);
 }
 
-[[maybe_unused]] void grass_audio::remove_listener(DWORD listener) const {
+void grass_audio::remove_listener(DWORD listener) const {
   BASS_ChannelRemoveSync(this->stream, listener);
 }
 
-[[maybe_unused]] DWORD grass_audio::on_position_set(const std::function<void()> &callback, bool remove_listener) const {
+DWORD grass_audio::on_position_set(const std::function<void()> &callback, bool remove_listener) const {
   const auto c_callback = callable_to_pointer([&callback](HSYNC, DWORD, DWORD, void *) { callback(); });
   return BASS_ChannelSetSync(this->stream, BASS_SYNC_SETPOS | (remove_listener ? BASS_SYNC_ONETIME : 0),
                              0,
