@@ -4,8 +4,8 @@
       "target_name": "grass_audio",
       "sources": [
         "cpp_src/binding.cpp",
-        "cpp_src/GrassAudioWrapper.cpp",
-        "cpp_src/GrassAudio.cpp"
+        "cpp_src/grass_audio_wrapper.cpp",
+        "cpp_src/grass_audio.cpp"
       ],
       "conditions": [
         [

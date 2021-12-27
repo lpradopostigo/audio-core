@@ -1,7 +1,7 @@
 #include "grass_audio_wrapper.h"
 
 Napi::Object grass_audio_wrapper::init(Napi::Env env, Napi::Object exports) {
-  Napi::Function func = DefineClass(env, "grass_audio", {
+  Napi::Function func = DefineClass(env, "GrassAudio", {
       InstanceMethod("setFile", &grass_audio_wrapper::set_file),
       InstanceMethod("setFileFromMemory", &grass_audio_wrapper::set_file_from_memory),
       InstanceMethod("play", &grass_audio_wrapper::play),
@@ -15,7 +15,7 @@ Napi::Object grass_audio_wrapper::init(Napi::Env env, Napi::Object exports) {
   auto *constructor = new Napi::FunctionReference();
   *constructor = Napi::Persistent(func);
 
-  exports.Set("grass_audio", func);
+  exports.Set("GrassAudio", func);
   env.SetInstanceData<Napi::FunctionReference>(constructor);
 
   return exports;
