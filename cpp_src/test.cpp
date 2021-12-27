@@ -1,10 +1,8 @@
 #include <iostream>
 #include "bass.h"
-#include "GrassAudio.h"
+#include "grass_audio.h"
 #include <cstdio>
-
 #include <fstream>
-#include <vector>
 
 std::vector<unsigned char> ReadFile(const char *filename) {
   std::streampos fileSize;
@@ -19,30 +17,23 @@ std::vector<unsigned char> ReadFile(const char *filename) {
   return fileData;
 }
 
-using namespace std;
-
-void Callback(HSYNC,
-              DWORD,
-              DWORD,
-              void *) {
-  cout << "gaaa" << endl;
-}
-
 int main() {
   BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 10000);
 //  const auto file = ReadFile("../1.wav");
-  auto player = new GrassAudio();
-  player->SetFile("../1.wav");
-//  player->SetFileFromMemory(file.data(), file.size());
-//  player->SetPosition(50);
+  auto player = new grass_audio();
+  player->set_file("../1.wav");
+//  player->set_file_from_memory(file.data(), file.size());
 
-  auto listener = player->OnPositionSet(&Callback);
-  player->Play();
+  auto callback = [](){std::cout << "gaaa" << std::endl;};
+  player->on_position_set(callback);
+  player->set_position(50);
 
-  Sleep(10000);
+  player->play();
 
-  player->SetPosition(0);
-//  player->RemoveListener(listener);
+//  Sleep(10000);
+
+//  player->set_position(0);
+//  player->remove_listener(listener);
 
   system("pause");
   return 0;
