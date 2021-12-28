@@ -16,6 +16,8 @@ export interface GrassAudio {
   getPosition(): number;
 
   setVolume(volume: number): void;
+
+  on(event:string, callback: ()=>void): number;
 }
 
 module.exports = require("./bin/win/x64/grass_audio.node")

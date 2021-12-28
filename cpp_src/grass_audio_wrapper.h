@@ -17,6 +17,7 @@ class grass_audio_wrapper : public Napi::ObjectWrap<grass_audio_wrapper> {
   void set_position(const Napi::CallbackInfo &info);
   void set_volume(const Napi::CallbackInfo &info);
   Napi::Value get_position(const Napi::CallbackInfo &info);
+  Napi::Value on(const Napi::CallbackInfo &info);
 
 };
 
