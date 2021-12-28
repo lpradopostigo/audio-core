@@ -1,3 +1,6 @@
+/*
+ * Credit to https://gist.github.com/isc30/fab67e5956fe8f2097bed84ebc42c1e8
+ * */
 #pragma once
 
 #include <type_traits>
