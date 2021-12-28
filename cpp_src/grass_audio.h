@@ -19,7 +19,7 @@ public:
                                              double position,
                                              bool remove_listener = false) const;
   [[maybe_unused]] DWORD on_end(const std::function<void()> &callback, bool remove_listener = false) const;
-  [[maybe_unused]] DWORD on_position_set(const std::function<void()> &callback, bool remove_listener = false) const;
+  [[maybe_unused]] DWORD on_position_set(const std::function<void()>& callback, bool remove_listener = false) const;
 
 private:
   HSTREAM stream = 0;

@@ -68,7 +68,7 @@ void grass_audio::set_file_from_memory(const unsigned char *file, QWORD length) 
 DWORD grass_audio::on_position_reached(const std::function<void()> &callback,
                                        double position,
                                        bool remove_listener) const {
-  const auto c_callback = callable_to_pointer([&callback](HSYNC, DWORD, DWORD, void *) { callback(); });
+  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
   const QWORD position_in_bytes = BASS_ChannelSeconds2Bytes(this->stream, position);
   return BASS_ChannelSetSync(this->stream, BASS_SYNC_POS | (remove_listener ? BASS_SYNC_ONETIME : 0),
                              position_in_bytes,
@@ -76,7 +76,7 @@ DWORD grass_audio::on_position_reached(const std::function<void()> &callback,
 }
 
 DWORD grass_audio::on_end(const std::function<void()> &callback, bool remove_listener) const {
-  const auto c_callback = callable_to_pointer([&callback](HSYNC, DWORD, DWORD, void *) { callback(); });
+  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
   return BASS_ChannelSetSync(this->stream, BASS_SYNC_END | (remove_listener ? BASS_SYNC_ONETIME : 0),
                              0,
                              c_callback, nullptr);
@@ -87,8 +87,9 @@ void grass_audio::remove_listener(DWORD listener) const {
 }
 
 DWORD grass_audio::on_position_set(const std::function<void()> &callback, bool remove_listener) const {
-  const auto c_callback = callable_to_pointer([&callback](HSYNC, DWORD, DWORD, void *) { callback(); });
-  return BASS_ChannelSetSync(this->stream, BASS_SYNC_SETPOS | (remove_listener ? BASS_SYNC_ONETIME : 0),
-                             0,
-                             c_callback, nullptr);
+  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
+  const auto listener = BASS_ChannelSetSync(this->stream, BASS_SYNC_SETPOS | (remove_listener ? BASS_SYNC_ONETIME : 0),
+                                            0,
+                                            c_callback, nullptr);
+  return listener;
 }
