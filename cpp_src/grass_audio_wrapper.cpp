@@ -12,6 +12,7 @@ Napi::Object grass_audio_wrapper::init(Napi::Env env, Napi::Object exports) {
       InstanceMethod("setVolume", &grass_audio_wrapper::set_volume),
       InstanceMethod("getPosition", &grass_audio_wrapper::get_position),
       InstanceMethod("on", &grass_audio_wrapper::on),
+      InstanceMethod("once", &grass_audio_wrapper::once),
   });
 
   auto *constructor = new Napi::FunctionReference();
@@ -123,3 +124,25 @@ Napi::Value grass_audio_wrapper::on(const Napi::CallbackInfo &info) {
 
   return Napi::Number::New(env, listener);
 }
+
+Napi::Value grass_audio_wrapper::once(const Napi::CallbackInfo &info) {
+  const auto env = info.Env();
+  const auto event_name = info[0].As<Napi::String>().Utf8Value();
+  const auto callback = Napi::ThreadSafeFunction::New(env, info[1].As<Napi::Function>(), "", 0, 2);
+  const auto callback_wrapper = [callback]() {
+    callback.NonBlockingCall();
+  };
+  DWORD listener = 0;
+
+  if (event_name == "positionSet") {
+    listener = this->audio_player->on_position_set(callback_wrapper, true);
+  } else if (event_name == "end") {
+    listener = this->audio_player->on_end(callback_wrapper, true);
+  } else if (event_name == "positionReached") {
+    const auto position = info[2].As<Napi::Number>().DoubleValue();
+    listener = this->audio_player->on_position_reached(callback_wrapper, position, true);
+  }
+
+  return Napi::Number::New(env, listener);
+}
+

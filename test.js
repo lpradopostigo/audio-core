@@ -7,11 +7,11 @@ const audio = new GrassAudio()
   audio.setFileFromMemory(file)
   audio.play()
   let x = 0
-  const listener = audio.on('positionReached', () => {
+  const listener = audio.once('positionReached', () => {
     console.log("js")
     x=x+1
     console.log(x)
-  }, 5)
+  }, 3)
 
   setTimeout(() => {
     audio.setPosition(0)
