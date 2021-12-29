@@ -1,6 +1,5 @@
-/// <reference types="node" />
-export interface GrassAudio {
-    new (): GrassAudio;
+declare module 'grass-audio'{
+  export class GrassAudio {
     setFile(path: string): void;
     setFileFromMemory(buffer: Buffer): void;
     play(): void;
@@ -11,4 +10,8 @@ export interface GrassAudio {
     setVolume(volume: number): void;
     on(event: string, callback: () => void, ...args: any): number;
     once(event: string, callback: () => void, ...args: any): number;
+  }
 }
+
+
+
