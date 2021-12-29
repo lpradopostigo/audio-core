@@ -93,3 +93,8 @@ DWORD grass_audio::on_position_set(const std::function<void()> &callback, bool r
                                             c_callback, nullptr);
   return listener;
 }
+
+double grass_audio::get_length() const {
+  const auto length_in_bytes = BASS_ChannelGetLength(this->stream, BASS_POS_BYTE);
+  return BASS_ChannelBytes2Seconds(this->stream, length_in_bytes);
+}
