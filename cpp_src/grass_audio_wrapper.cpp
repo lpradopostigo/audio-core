@@ -13,6 +13,7 @@ Napi::Object grass_audio_wrapper::init(Napi::Env env, Napi::Object exports) {
       InstanceMethod("getPosition", &grass_audio_wrapper::get_position),
       InstanceMethod("on", &grass_audio_wrapper::on),
       InstanceMethod("once", &grass_audio_wrapper::once),
+      InstanceMethod("getLength", &grass_audio_wrapper::get_length),
   });
 
   auto *constructor = new Napi::FunctionReference();
@@ -144,5 +145,10 @@ Napi::Value grass_audio_wrapper::once(const Napi::CallbackInfo &info) {
   }
 
   return Napi::Number::New(env, listener);
+}
+
+Napi::Value grass_audio_wrapper::get_length(const Napi::CallbackInfo &info) {
+  const auto length = this->audio_player->get_length();
+  return Napi::Number::New(info.Env(), length);
 }
 

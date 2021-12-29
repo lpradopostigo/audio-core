@@ -17,6 +17,7 @@ private:
   void set_position(const Napi::CallbackInfo &info);
   void set_volume(const Napi::CallbackInfo &info);
   Napi::Value get_position(const Napi::CallbackInfo &info);
+  Napi::Value get_length(const Napi::CallbackInfo &info);
   Napi::Value on(const Napi::CallbackInfo &info);
   Napi::Value once(const Napi::CallbackInfo &info);
 };
