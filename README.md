@@ -1,26 +1,20 @@
 # Grass Audio
 An audio player class for node, it uses the bass library as engine.
+**NOTE: this library is on early development**
 
 ## Get started
-
 Install by running
-
 ```bash
 npm install grass-audio
 ```
-
 Import the module
-
 ```js
 import GrassAudio from 'grass-audio'
 ```
-
 Now you can instantiate the class with
-
 ```js
 const audioPlayer = new GrassAudio(); 
 ```
-
 With that you can now use the different methods
 
 ## Reference
