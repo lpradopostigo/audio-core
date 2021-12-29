@@ -9,7 +9,7 @@ npm install grass-audio
 ```
 Import the module
 ```js
-import GrassAudio from 'grass-audio'
+import { GrassAudio } from 'grass-audio'
 ```
 Now you can instantiate the class with
 ```js
