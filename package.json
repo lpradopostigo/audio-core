@@ -1,14 +1,18 @@
 {
   "name": "grass-audio",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "audio player class, using the bass library as engine",
   "main": "index.js",
   "types": "index.d.ts",
   "gypfile": true,
   "scripts": {
     "build:dev": "node-gyp rebuild --debug && cp cpp_src/lib/bass/x64/bass.dll build/Debug/",
-    "build:prod": "node-gyp clean && node-gyp configure && node-gyp build --release && cp cpp_src/lib/bass/x64/bass.dll build/Release/  && cp build/Release/grass_audio.node build/Release/bass.dll bin/win/x64/",
+    "build:prod": "node-gyp clean && node-gyp configure && node-gyp build --release",
     "clean": "node-gyp clean"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/lpradopostigo/grass-audio.git"
   },
   "keywords": [
     "node",
@@ -25,7 +29,6 @@
     "node-gyp": "^8.4.1",
     "prettier": "^2.5.1"
   },
-
   "dependencies": {
     "node-addon-api": "^4.2.0"
   }
