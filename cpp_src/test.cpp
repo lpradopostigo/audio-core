@@ -12,9 +12,7 @@ void log_error() {
   cout << BASS_ErrorGetCode() << endl;
 }
 
-
-std::vector<BYTE> read_file(const char* filename)
-{
+std::vector<BYTE> read_file(const char *filename) {
   // open the file:
   std::ifstream file(filename, std::ios::binary);
 
@@ -41,19 +39,21 @@ std::vector<BYTE> read_file(const char* filename)
 }
 
 int main() {
-  auto file1 = read_file("../2.wav");
-  auto file2 = read_file("../2.wav");
-  vector<vector<unsigned char>> files{};
+  auto file1 = read_file("../gapless2.wav");
+  auto file2 = read_file("../gapless3.wav");
+  vector<vector<BYTE>> files{};
   files.push_back(file1);
   files.push_back(file2);
 
   const auto grass = new grass_audio(files);
+  grass->set_position(320);
   grass->play();
 
-  Sleep(2000);
-  grass->pause();
-  Sleep(2000);
-  grass->play();
+//  Sleep(4000);
+  cout << "aea" << endl;
+//  grass->stop();
+//  Sleep(1000);
+//  grass->play();
 
   system("Pause");
 
