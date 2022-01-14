@@ -1,10 +1,38 @@
 #include <iostream>
+#include <utility>
 #include "grass_audio.h"
 #include "callable_to_pointer.hpp"
 
-grass_audio::grass_audio() {
-  BASS_Init(-1, 44100, 0, nullptr, nullptr);
-  BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 1000);
+void log_error(const std::string &message) {
+  const auto error_code = BASS_ErrorGetCode();
+
+  if (error_code != BASS_OK) {
+    std::cout << "message:" + message << std::endl << "with error code:" + std::to_string(error_code) << std::endl;
+  }
+}
+
+grass_audio::grass_audio(std::vector<std::vector<unsigned char>> files, DWORD frequency) {
+  this->files = std::move(files);
+
+  BASS_Init(-1, frequency, 0, nullptr, nullptr);
+  log_error("init failed");
+
+  BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 2000);
+  log_error("config setup failed");
+
+  this->mixer_stream = BASS_Mixer_StreamCreate(frequency, 2, BASS_MIXER_END);
+  log_error("mixer stream creation failed");
+
+  const auto c_callback = callable_to_pointer([this](HSYNC, DWORD, DWORD, void *) { this->load_next_file(); });
+
+  BASS_ChannelSetSync(this->mixer_stream,
+                      BASS_SYNC_END | BASS_SYNC_MIXTIME,
+                      0,
+                      c_callback,
+                      nullptr);
+  log_error("ChannelSetSync failed");
+
+  this->load_next_file();
 }
 
 void grass_audio::set_file(const char *path) {
@@ -15,14 +43,15 @@ void grass_audio::set_file(const char *path) {
   }
 
   this->stream = BASS_StreamCreateFile(false, path, 0, 0, 0);
+
 }
 
 void grass_audio::play() const {
-  BASS_ChannelPlay(this->stream, FALSE);
+  BASS_ChannelPlay(this->mixer_stream, FALSE);
 }
 
 void grass_audio::pause() const {
-  BASS_ChannelPause(this->stream);
+  BASS_ChannelPause(this->mixer_stream);
 }
 
 grass_audio::~grass_audio() {
@@ -97,4 +126,23 @@ DWORD grass_audio::on_position_set(const std::function<void()> &callback, bool r
 double grass_audio::get_length() const {
   const auto length_in_bytes = BASS_ChannelGetLength(this->stream, BASS_POS_BYTE);
   return BASS_ChannelBytes2Seconds(this->stream, length_in_bytes);
+}
+
+void grass_audio::load_next_file() {
+  const auto remaining_files = this->files.size() - this->current_position;
+
+  if (remaining_files == 0)
+    return;
+
+  const auto
+      next_stream = BASS_StreamCreateFile(true,
+                                          this->files[current_position].data(),
+                                          0,
+                                          this->files[current_position].size(),
+                                          BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+
+  this->file_streams.push_back(next_stream);
+  BASS_Mixer_StreamAddChannel(this->mixer_stream, next_stream, BASS_STREAM_AUTOFREE);
+  BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
+  this->current_position++;
 }

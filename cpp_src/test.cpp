@@ -3,38 +3,58 @@
 #include "grass_audio.h"
 #include <cstdio>
 #include <fstream>
+#include <cassert>
+#include <iterator>
+#include "bassmix.h"
+using namespace std;
 
-std::vector<unsigned char> ReadFile(const char *filename) {
-  std::streampos fileSize;
+void log_error() {
+  cout << BASS_ErrorGetCode() << endl;
+}
+
+
+std::vector<BYTE> read_file(const char* filename)
+{
+  // open the file:
   std::ifstream file(filename, std::ios::binary);
+
+  // Stop eating new lines in binary mode!!!
+  file.unsetf(std::ios::skipws);
+
+  // get its size:
+  std::streampos fileSize;
 
   file.seekg(0, std::ios::end);
   fileSize = file.tellg();
   file.seekg(0, std::ios::beg);
 
-  std::vector<unsigned char> fileData(fileSize);
-  file.read((char *) &fileData[0], fileSize);
-  return fileData;
+  // reserve capacity
+  std::vector<BYTE> vec;
+  vec.reserve(fileSize);
+
+  // read the data:
+  vec.insert(vec.begin(),
+             std::istream_iterator<BYTE>(file),
+             std::istream_iterator<BYTE>());
+
+  return vec;
 }
 
 int main() {
-  BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 10000);
-//  const auto file = ReadFile("../1.wav");
-  auto player = new grass_audio();
-  player->set_file("../1.wav");
-//  player->set_file_from_memory(file.data(), file.size());
+  auto file1 = read_file("../2.wav");
+  auto file2 = read_file("../2.wav");
+  vector<vector<unsigned char>> files{};
+  files.push_back(file1);
+  files.push_back(file2);
 
-  auto callback = [](){std::cout << "gaaa" << std::endl;};
-  player->on_position_set(callback);
-  player->set_position(50);
+  const auto grass = new grass_audio(files);
+  grass->play();
 
-  player->play();
+  Sleep(2000);
+  grass->pause();
+  Sleep(2000);
+  grass->play();
 
-//  Sleep(10000);
+  system("Pause");
 
-//  player->set_position(0);
-//  player->remove_listener(listener);
-
-  system("pause");
-  return 0;
 }
