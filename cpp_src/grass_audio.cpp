@@ -115,6 +115,6 @@ void grass_audio::load_next_file() {
   BASS_Mixer_StreamAddChannel(this->mixer_stream,
                               this->current_stream,
                               BASS_STREAM_AUTOFREE | BASS_MIXER_CHAN_NORAMPIN);
-  BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
+  BASS_Mixer_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
 
 }

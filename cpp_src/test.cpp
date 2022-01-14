@@ -49,11 +49,12 @@ int main() {
   grass->set_position(320);
   grass->play();
 
-//  Sleep(4000);
+  Sleep(2000);
   cout << "aea" << endl;
-//  grass->stop();
-//  Sleep(1000);
-//  grass->play();
+  grass->stop();
+  grass->set_position(120);
+
+  grass->play();
 
   system("Pause");
 
