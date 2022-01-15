@@ -10,7 +10,7 @@ public:
 
   [[maybe_unused]] void play() const;
   [[maybe_unused]] void pause() const;
-  [[maybe_unused]] void stop(); // TODO
+  [[maybe_unused]] void stop();
   [[maybe_unused]] void set_position(double position) const;
   [[maybe_unused]] void set_volume(float value) const; // TODO
   [[maybe_unused]] [[nodiscard]]  double get_position() const; // TEST
@@ -23,6 +23,7 @@ public:
   [[maybe_unused]] DWORD on_position_set(const std::function<void()> &callback,
                                          bool remove_listener = false) const;//TODO
 
+  void go_to_file(int index);
 private:
   std::vector<std::vector<unsigned char>> files{};
 
@@ -31,5 +32,6 @@ private:
   HSTREAM mixer_stream = 0;
 
   void load_next_file();
+  void flush_mixer() const;
 };
 

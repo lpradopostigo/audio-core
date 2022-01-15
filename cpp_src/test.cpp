@@ -50,9 +50,12 @@ int main() {
   grass->play();
 
   Sleep(2000);
+  grass->pause();
+
+  Sleep(2000);
+
   cout << "aea" << endl;
-  grass->stop();
-  grass->set_position(120);
+//  grass->go_to_file(1);
 
   grass->play();
 

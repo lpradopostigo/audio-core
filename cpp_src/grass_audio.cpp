@@ -42,14 +42,31 @@ void grass_audio::play() const {
   BASS_ChannelPlay(this->mixer_stream, FALSE);
 }
 
+void grass_audio::go_to_file(int index) {
+  this->pause();
+
+  this->current_position = index;
+  this->load_next_file();
+}
+
 void grass_audio::pause() const {
-  BASS_Mixer_ChannelRemove(this->current_stream);
+  BASS_ChannelPause(this->mixer_stream);
+}
+
+void grass_audio::flush_mixer() const {
+  QWORD channel_position = BASS_Mixer_ChannelGetPosition(this->current_stream, BASS_POS_BYTE);
+  BASS_Mixer_ChannelSetPosition(this->current_stream, channel_position, BASS_POS_BYTE);
+  BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
 }
 
 void grass_audio::stop() {
   this->pause();
+  this->flush_mixer();
+  BASS_Mixer_ChannelRemove(this->current_stream);
+
   this->current_position = 0;
   this->load_next_file();
+
 }
 
 void grass_audio::set_position(double position) const {
@@ -102,9 +119,12 @@ double grass_audio::get_position() const {
 
 void grass_audio::load_next_file() {
   const auto remaining_files = this->files.size() - this->current_position;
+  std::cout << "loading file" << std::endl;
 
-  if (remaining_files == 0)
+  if (remaining_files == 0) {
+    std::cout << "playback ended" << std::endl;
     return;
+  }
 
   this->current_stream = BASS_StreamCreateFile(true,
                                                this->files[current_position].data(),
@@ -112,9 +132,14 @@ void grass_audio::load_next_file() {
                                                this->files[current_position].size(),
                                                BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 
+  log_error("failed to create stream");
+
   BASS_Mixer_StreamAddChannel(this->mixer_stream,
                               this->current_stream,
-                              BASS_STREAM_AUTOFREE | BASS_MIXER_CHAN_NORAMPIN);
-  BASS_Mixer_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE | BASS_POS_MIXER_RESET);
+                              BASS_MIXER_CHAN_NORAMPIN);
+  log_error("failed to add stream to mixer");
+
+  BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
+  log_error("failed to set mixer position to 0");
 
 }
