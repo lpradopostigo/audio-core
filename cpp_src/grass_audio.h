@@ -14,6 +14,7 @@ public:
   [[maybe_unused]] void set_position(double position) const;
   [[maybe_unused]] [[nodiscard]]  double get_position() const;
   [[maybe_unused]] void set_volume(float value) const;
+  [[maybe_unused]] void skip_to_file(int index);
 
   [[maybe_unused]] void remove_listener(DWORD listener) const; //TODO
   [[maybe_unused]] DWORD on_position_reached(const std::function<void()> &callback,//TODO
@@ -23,7 +24,6 @@ public:
   [[maybe_unused]] DWORD on_position_set(const std::function<void()> &callback,
                                          bool remove_listener = false) const;//TODO
 
-  void go_to_file(int index);
 private:
   std::vector<std::vector<unsigned char>> files{};
 

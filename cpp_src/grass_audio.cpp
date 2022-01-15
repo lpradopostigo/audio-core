@@ -42,8 +42,8 @@ void grass_audio::play() const {
   BASS_ChannelPlay(this->mixer_stream, FALSE);
 }
 
-void grass_audio::go_to_file(int index) {
-  this->pause();
+void grass_audio::skip_to_file(int index) {
+  BASS_Mixer_ChannelRemove(this->current_stream);
 
   this->current_position = index;
   this->load_next_file();
