@@ -24,7 +24,7 @@ grass_audio::grass_audio(std::vector<std::vector<unsigned char>> files, DWORD fr
   log_error("mixer stream creation failed");
 
   const auto c_callback = callable_to_pointer([this](HSYNC, DWORD, DWORD, void *) {
-    this->current_position++;
+    this->current_file_index++;
     this->load_next_file();
   });
 
@@ -45,7 +45,7 @@ void grass_audio::play() const {
 void grass_audio::skip_to_file(int index) {
   BASS_Mixer_ChannelRemove(this->current_stream);
 
-  this->current_position = index;
+  this->current_file_index = index;
   this->load_next_file();
 }
 
@@ -64,7 +64,7 @@ void grass_audio::stop() {
   this->flush_mixer();
   BASS_Mixer_ChannelRemove(this->current_stream);
 
-  this->current_position = 0;
+  this->current_file_index = 0;
   this->load_next_file();
 
 }
@@ -118,7 +118,7 @@ void grass_audio::set_volume(float value) const {
 //}
 
 void grass_audio::load_next_file() {
-  const auto remaining_files = this->files.size() - this->current_position;
+  const auto remaining_files = this->files.size() - this->current_file_index;
   std::cout << "loading file" << std::endl;
 
   if (remaining_files == 0) {
@@ -127,9 +127,9 @@ void grass_audio::load_next_file() {
   }
 
   this->current_stream = BASS_StreamCreateFile(true,
-                                               this->files[current_position].data(),
+                                               this->files[current_file_index].data(),
                                                0,
-                                               this->files[current_position].size(),
+                                               this->files[current_file_index].size(),
                                                BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
 
   log_error("failed to create stream");
@@ -142,4 +142,7 @@ void grass_audio::load_next_file() {
   BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
   log_error("failed to set mixer position to 0");
 
+}
+int grass_audio::get_current_file_index() const {
+  return this->current_file_index;
 }
