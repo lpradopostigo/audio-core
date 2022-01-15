@@ -1,5 +1,5 @@
 node_modules
-cmake-build-debug
+cmake-build-debug*/
 *.wav
 *.log
 build

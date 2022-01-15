@@ -1,7 +1,56 @@
+#pragma once
+#include "bass.h"
+#include "bassmix.h"
+#include <functional>
+#include <type_traits>
 #include <iostream>
 #include <utility>
-#include "grass_audio.h"
 #include "callable_to_pointer.hpp"
+
+template<typename T>
+concept BinaryOrFilePath = std::is_same_v<T, std::string>
+    || std::is_same_v<T, std::vector<uint8_t>>;
+
+template<BinaryOrFilePath T>
+class GrassAudio {
+public:
+  enum Event {
+    POSITION_REACHED, // FIX
+    END,
+  };
+
+  explicit GrassAudio(std::vector<T> files, DWORD frequency = 44100);
+
+  ~GrassAudio() = default;
+
+  [[maybe_unused]] void play() const;
+  [[maybe_unused]] void pause() const;
+  [[maybe_unused]] void stop();
+  [[maybe_unused]] void set_position(double position) const;
+  [[maybe_unused]] [[nodiscard]]  double get_position() const;
+  [[maybe_unused]] void set_volume(float value) const;
+  [[maybe_unused]] void skip_to_file(int index);
+  [[maybe_unused]] void next();
+  [[maybe_unused]] void previous();
+  [[maybe_unused]] [[nodiscard]] DWORD add_listener(Event event,
+                                                    const std::function<void()> &callback,
+                                                    bool remove_on_trigger = false, double position = 0) const;
+
+  [[maybe_unused]] [[nodiscard]] size_t get_current_file_index() const;
+
+  [[maybe_unused]] void remove_listener(DWORD listener) const; //TODO
+
+private:
+  std::vector<T> files{};
+
+  DWORD current_stream = 0;
+  size_t current_file_index = 0;
+  HSTREAM mixer_stream = 0;
+
+  void load_next_file();
+  void flush_mixer() const;
+  size_t resolve_index(int index);
+};
 
 void log_error(const std::string &message) {
   const auto error_code = BASS_ErrorGetCode();
@@ -11,7 +60,8 @@ void log_error(const std::string &message) {
   }
 }
 
-grass_audio::grass_audio(std::vector<std::vector<unsigned char>> files, DWORD frequency) {
+template<BinaryOrFilePath T>
+GrassAudio<T>::GrassAudio(std::vector<T> files, DWORD frequency) {
   this->files = std::move(files);
 
   BASS_Init(-1, frequency, 0, nullptr, nullptr);
@@ -38,7 +88,8 @@ grass_audio::grass_audio(std::vector<std::vector<unsigned char>> files, DWORD fr
   this->load_next_file();
 }
 
-size_t grass_audio::resolve_index(int index) {
+template<BinaryOrFilePath T>
+size_t GrassAudio<T>::resolve_index(int index) {
   if (index < 0) {
     return this->files.size() - 1;
   } else if (index >= this->files.size()) {
@@ -46,27 +97,32 @@ size_t grass_audio::resolve_index(int index) {
   }
 }
 
-void grass_audio::play() const {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::play() const {
   BASS_ChannelPlay(this->mixer_stream, FALSE);
 }
 
-void grass_audio::skip_to_file(int index) {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::skip_to_file(int index) {
   BASS_Mixer_ChannelRemove(this->current_stream);
   this->current_file_index = this->resolve_index(index);
   this->load_next_file();
 }
 
-void grass_audio::pause() const {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::pause() const {
   BASS_ChannelPause(this->mixer_stream);
 }
 
-void grass_audio::flush_mixer() const {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::flush_mixer() const {
   QWORD channel_position = BASS_Mixer_ChannelGetPosition(this->current_stream, BASS_POS_BYTE);
   BASS_Mixer_ChannelSetPosition(this->current_stream, channel_position, BASS_POS_BYTE);
   BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
 }
 
-void grass_audio::stop() {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::stop() {
   this->pause();
   this->flush_mixer();
   BASS_Mixer_ChannelRemove(this->current_stream);
@@ -76,7 +132,8 @@ void grass_audio::stop() {
 
 }
 
-void grass_audio::set_position(double position) const {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::set_position(double position) const {
   BASS_Mixer_ChannelSetPosition(this->current_stream,
                                 BASS_ChannelSeconds2Bytes(this->current_stream, position),
                                 BASS_POS_BYTE | BASS_MIXER_CHAN_NORAMPIN);
@@ -85,16 +142,19 @@ void grass_audio::set_position(double position) const {
 
 }
 
-double grass_audio::get_position() const {
+template<BinaryOrFilePath T>
+double GrassAudio<T>::get_position() const {
   const QWORD position_in_bytes = BASS_Mixer_ChannelGetPosition(this->current_stream, BASS_POS_BYTE);
   return BASS_ChannelBytes2Seconds(this->current_stream, position_in_bytes);
 }
 
-void grass_audio::set_volume(float value) const {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::set_volume(float value) const {
   BASS_ChannelSetAttribute(this->mixer_stream, BASS_ATTRIB_VOL, value);
 }
 
-void grass_audio::load_next_file() {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::load_next_file() {
   const auto remaining_files = this->files.size() - this->current_file_index;
   std::cout << "loading file" << std::endl;
 
@@ -103,11 +163,20 @@ void grass_audio::load_next_file() {
     return;
   }
 
-  this->current_stream = BASS_StreamCreateFile(true,
-                                               this->files[current_file_index].data(),
-                                               0,
-                                               this->files[current_file_index].size(),
-                                               BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+  if constexpr(std::is_same_v<T, std::string>) {
+    this->current_stream = BASS_StreamCreateFile(false,
+                                                 this->files[current_file_index],
+                                                 0,
+                                                 0,
+                                                 BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+
+  } else if (std::is_same_v<T, std::vector<uint8_t>>) {
+    this->current_stream = BASS_StreamCreateFile(true,
+                                                 this->files[current_file_index].data(),
+                                                 0,
+                                                 this->files[current_file_index].size(),
+                                                 BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+  }
 
   log_error("failed to create stream");
 
@@ -120,21 +189,26 @@ void grass_audio::load_next_file() {
   log_error("failed to set mixer position to 0");
 
 }
-size_t grass_audio::get_current_file_index() const {
+
+template<BinaryOrFilePath T>
+size_t GrassAudio<T>::get_current_file_index() const {
   return this->current_file_index;
 }
 
-void grass_audio::next() {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::next() {
   this->skip_to_file(this->current_file_index + 1);
 }
 
-void grass_audio::previous() {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::previous() {
   this->skip_to_file(this->current_file_index - 1);
 }
 
-DWORD grass_audio::add_listener(grass_audio::Event event,
-                                const std::function<void()> &callback,
-                                bool remove_on_trigger, double position) const {
+template<BinaryOrFilePath T>
+DWORD GrassAudio<T>::add_listener(GrassAudio::Event event,
+                                  const std::function<void()> &callback,
+                                  bool remove_on_trigger, double position) const {
   const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
   const DWORD one_time = remove_on_trigger ? BASS_SYNC_ONETIME : 0;
 
@@ -163,7 +237,8 @@ DWORD grass_audio::add_listener(grass_audio::Event event,
   return listener;
 }
 
-void grass_audio::remove_listener(DWORD listener) const {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::remove_listener(DWORD listener) const {
   BASS_ChannelRemoveSync(this->mixer_stream, listener);
   log_error("failed to remove listener");
 }

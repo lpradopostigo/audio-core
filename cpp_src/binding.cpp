@@ -1,8 +1,8 @@
 #include "napi.h"
-#include "grass_audio_wrapper.h"
+#include "GrassAudioWrapper.h"
 
 Napi::Object init(Napi::Env env, Napi::Object exports) {
-  grass_audio_wrapper::init(env, exports);
+  GrassAudioWrapper::init(env, exports);
   return exports;
 }
 

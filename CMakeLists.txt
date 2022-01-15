@@ -17,8 +17,12 @@ set_target_properties(
         IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/cpp_src/lib/bass/x64/bassmix.lib)
 
 
-add_library(grass_audio cpp_src/grass_audio.cpp cpp_src/grass_audio.h)
-add_library(grass_audio_wrapper cpp_src/grass_audio_wrapper.cpp cpp_src/grass_audio_wrapper.h)
+add_library(grass_audio cpp_src/GrassAudio.h)
+set_target_properties(
+        grass_audio
+        PROPERTIES LINKER_LANGUAGE CXX)
+
+add_library(grass_audio_wrapper cpp_src/GrassAudioWrapper.cpp cpp_src/GrassAudioWrapper.h)
 add_library(binding cpp_src/binding.cpp)
 
 add_library(callable_to_pointer cpp_src/callable_to_pointer.hpp)
