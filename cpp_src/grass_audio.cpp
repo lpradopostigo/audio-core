@@ -38,14 +38,21 @@ grass_audio::grass_audio(std::vector<std::vector<unsigned char>> files, DWORD fr
   this->load_next_file();
 }
 
+size_t grass_audio::resolve_index(int index) {
+  if (index < 0) {
+    return this->files.size() - 1;
+  } else if (index >= this->files.size()) {
+    return 0;
+  }
+}
+
 void grass_audio::play() const {
   BASS_ChannelPlay(this->mixer_stream, FALSE);
 }
 
 void grass_audio::skip_to_file(int index) {
   BASS_Mixer_ChannelRemove(this->current_stream);
-
-  this->current_file_index = index;
+  this->current_file_index = this->resolve_index(index);
   this->load_next_file();
 }
 
@@ -143,6 +150,14 @@ void grass_audio::load_next_file() {
   log_error("failed to set mixer position to 0");
 
 }
-int grass_audio::get_current_file_index() const {
+size_t grass_audio::get_current_file_index() const {
   return this->current_file_index;
+}
+
+void grass_audio::next() {
+  this->skip_to_file(this->current_file_index + 1);
+}
+
+void grass_audio::previous() {
+  this->skip_to_file(this->current_file_index - 1);
 }

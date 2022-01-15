@@ -15,7 +15,9 @@ public:
   [[maybe_unused]] [[nodiscard]]  double get_position() const;
   [[maybe_unused]] void set_volume(float value) const;
   [[maybe_unused]] void skip_to_file(int index);
-  [[maybe_unused]] [[nodiscard]] int get_current_file_index() const;
+  [[maybe_unused]] void next();
+
+  [[maybe_unused]] [[nodiscard]] size_t get_current_file_index() const;
 
   [[maybe_unused]] void remove_listener(DWORD listener) const; //TODO
   [[maybe_unused]] DWORD on_position_reached(const std::function<void()> &callback,//TODO
@@ -29,10 +31,12 @@ private:
   std::vector<std::vector<unsigned char>> files{};
 
   DWORD current_stream = 0;
-  int current_file_index = 0;
+  size_t current_file_index = 0;
   HSTREAM mixer_stream = 0;
 
   void load_next_file();
   void flush_mixer() const;
+  size_t resolve_index(int index);
+  void previous();
 };
 
