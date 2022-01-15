@@ -79,8 +79,8 @@ void grass_audio::set_position(double position) const {
 }
 
 double grass_audio::get_position() const {
-  const QWORD position_in_bytes = BASS_Mixer_ChannelGetPosition(this->mixer_stream, BASS_POS_BYTE);
-  return BASS_ChannelBytes2Seconds(this->mixer_stream, position_in_bytes);
+  const QWORD position_in_bytes = BASS_Mixer_ChannelGetPosition(this->current_stream, BASS_POS_BYTE);
+  return BASS_ChannelBytes2Seconds(this->current_stream, position_in_bytes);
 }
 
 //void grass_audio::set_volume(float value) const {
