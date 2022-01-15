@@ -83,9 +83,9 @@ double grass_audio::get_position() const {
   return BASS_ChannelBytes2Seconds(this->current_stream, position_in_bytes);
 }
 
-//void grass_audio::set_volume(float value) const {
-//  BASS_ChannelSetAttribute(this->stream, BASS_ATTRIB_VOL, value);
-//}
+void grass_audio::set_volume(float value) const {
+  BASS_ChannelSetAttribute(this->mixer_stream, BASS_ATTRIB_VOL, value);
+}
 
 
 //DWORD grass_audio::on_position_reached(const std::function<void()> &callback,
