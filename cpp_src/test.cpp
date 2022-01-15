@@ -49,15 +49,19 @@ int main() {
   grass->set_position(320);
   grass->play();
 
+  const auto
+      listener = grass->add_listener(grass_audio::END, [] { cout << "reached" << endl; }, false, 310);
   Sleep(2000);
-  grass->pause();
 
-  Sleep(2000);
+  grass->remove_listener(listener);
 
-  cout << "aea" << endl;
-//  grass->go_to_file(1);
+  Sleep(8000);
 
-  grass->play();
+  grass->remove_listener(listener);
+  grass->set_position(250);
+
+//  cout << grass->get_current_file_index() << endl;
+
 
   system("Pause");
 

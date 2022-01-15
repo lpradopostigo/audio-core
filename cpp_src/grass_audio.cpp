@@ -79,7 +79,7 @@ void grass_audio::stop() {
 void grass_audio::set_position(double position) const {
   BASS_Mixer_ChannelSetPosition(this->current_stream,
                                 BASS_ChannelSeconds2Bytes(this->current_stream, position),
-                                BASS_POS_BYTE);
+                                BASS_POS_BYTE | BASS_MIXER_CHAN_NORAMPIN);
 
   log_error("failed to set position");
 
@@ -93,36 +93,6 @@ double grass_audio::get_position() const {
 void grass_audio::set_volume(float value) const {
   BASS_ChannelSetAttribute(this->mixer_stream, BASS_ATTRIB_VOL, value);
 }
-
-
-//DWORD grass_audio::on_position_reached(const std::function<void()> &callback,
-//                                       double position,
-//                                       bool remove_listener) const {
-//  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
-//  const QWORD position_in_bytes = BASS_ChannelSeconds2Bytes(this->stream, position);
-//  return BASS_ChannelSetSync(this->stream, BASS_SYNC_POS | (remove_listener ? BASS_SYNC_ONETIME : 0),
-//                             position_in_bytes,
-//                             c_callback, nullptr);
-//}
-//
-//DWORD grass_audio::on_end(const std::function<void()> &callback, bool remove_listener) const {
-//  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
-//  return BASS_ChannelSetSync(this->stream, BASS_SYNC_END | (remove_listener ? BASS_SYNC_ONETIME : 0),
-//                             0,
-//                             c_callback, nullptr);
-//}
-//
-//void grass_audio::remove_listener(DWORD listener) const {
-//  BASS_ChannelRemoveSync(this->file_streams[0], listener);
-//}
-
-//DWORD grass_audio::on_position_set(const std::function<void()> &callback, bool remove_listener) const {
-//  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
-//  const auto listener = BASS_ChannelSetSync(this->stream, BASS_SYNC_SETPOS | (remove_listener ? BASS_SYNC_ONETIME : 0),
-//                                            0,
-//                                            c_callback, nullptr);
-//  return listener;
-//}
 
 void grass_audio::load_next_file() {
   const auto remaining_files = this->files.size() - this->current_file_index;
@@ -160,4 +130,40 @@ void grass_audio::next() {
 
 void grass_audio::previous() {
   this->skip_to_file(this->current_file_index - 1);
+}
+
+DWORD grass_audio::add_listener(grass_audio::Event event,
+                                const std::function<void()> &callback,
+                                bool remove_on_trigger, double position) const {
+  const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
+  const DWORD one_time = remove_on_trigger ? BASS_SYNC_ONETIME : 0;
+
+  DWORD listener = 0;
+
+  switch (event) {
+  case POSITION_REACHED: {
+    const QWORD position_in_bytes = BASS_ChannelSeconds2Bytes(this->mixer_stream, position);
+    listener = BASS_ChannelSetSync(this->mixer_stream, BASS_SYNC_POS | BASS_SYNC_MIXTIME | one_time,
+                                   position_in_bytes,
+                                   c_callback, nullptr);
+    break;
+  }
+
+  case END: {
+    listener = BASS_ChannelSetSync(this->mixer_stream, BASS_SYNC_END | BASS_SYNC_MIXTIME | one_time,
+                                   0,
+                                   c_callback, nullptr);
+    break;
+  };
+
+  default:break;
+  }
+
+  log_error("failed to set listener");
+  return listener;
+}
+
+void grass_audio::remove_listener(DWORD listener) const {
+  BASS_ChannelRemoveSync(this->mixer_stream, listener);
+  log_error("failed to remove listener");
 }
