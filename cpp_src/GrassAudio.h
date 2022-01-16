@@ -4,6 +4,7 @@
 #include <functional>
 #include <type_traits>
 #include <iostream>
+#include <string>
 #include <utility>
 #include "callable_to_pointer.hpp"
 
@@ -11,17 +12,17 @@ template<typename T>
 concept BinaryOrFilePath = std::is_same_v<T, std::string>
     || std::is_same_v<T, std::vector<uint8_t>>;
 
-template<BinaryOrFilePath T>
+enum GrassAudioEvent {
+  POSITION_REACHED, // FIX
+  END,
+};
+
+template<BinaryOrFilePath T = std::string>
 class GrassAudio {
 public:
-  enum Event {
-    POSITION_REACHED, // FIX
-    END,
-  };
-
   explicit GrassAudio(std::vector<T> files, DWORD frequency = 44100);
 
-  ~GrassAudio() = default;
+  ~GrassAudio();
 
   [[maybe_unused]] void play() const;
   [[maybe_unused]] void pause() const;
@@ -32,7 +33,7 @@ public:
   [[maybe_unused]] void skip_to_file(int index);
   [[maybe_unused]] void next();
   [[maybe_unused]] void previous();
-  [[maybe_unused]] [[nodiscard]] DWORD add_listener(Event event,
+  [[maybe_unused]] [[nodiscard]] DWORD add_listener(GrassAudioEvent event,
                                                     const std::function<void()> &callback,
                                                     bool remove_on_trigger = false, double position = 0) const;
 
@@ -50,9 +51,11 @@ private:
   void load_next_file();
   void flush_mixer() const;
   size_t resolve_index(int index);
+  static void log_bass_error(const std::string &message);
 };
 
-void log_error(const std::string &message) {
+template<BinaryOrFilePath T>
+void GrassAudio<T>::log_bass_error(const std::string &message) {
   const auto error_code = BASS_ErrorGetCode();
 
   if (error_code != BASS_OK) {
@@ -65,15 +68,15 @@ GrassAudio<T>::GrassAudio(std::vector<T> files, DWORD frequency) {
   this->files = std::move(files);
 
   BASS_Init(-1, frequency, 0, nullptr, nullptr);
-  log_error("init failed");
+  log_bass_error("init failed");
 
   BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 2000);
-  log_error("config setup failed");
+  log_bass_error("config setup failed");
 
   this->mixer_stream = BASS_Mixer_StreamCreate(frequency, 2, BASS_MIXER_END);
-  log_error("mixer stream creation failed");
+  log_bass_error("mixer stream creation failed");
 
-  const auto c_callback = callable_to_pointer([this](HSYNC, DWORD, DWORD, void *) {
+  const auto c_callback = callable_to_pointer([this](HSYNC, DWORD, DWORD, void *) -> void {
     this->current_file_index++;
     this->load_next_file();
   });
@@ -81,9 +84,9 @@ GrassAudio<T>::GrassAudio(std::vector<T> files, DWORD frequency) {
   BASS_ChannelSetSync(this->mixer_stream,
                       BASS_SYNC_END | BASS_SYNC_MIXTIME,
                       0,
-                      c_callback,
+                      reinterpret_cast<SYNCPROC (__stdcall *)>(c_callback),
                       nullptr);
-  log_error("ChannelSetSync failed");
+  log_bass_error("ChannelSetSync failed");
 
   this->load_next_file();
 }
@@ -94,6 +97,8 @@ size_t GrassAudio<T>::resolve_index(int index) {
     return this->files.size() - 1;
   } else if (index >= this->files.size()) {
     return 0;
+  } else {
+    return index;
   }
 }
 
@@ -138,7 +143,7 @@ void GrassAudio<T>::set_position(double position) const {
                                 BASS_ChannelSeconds2Bytes(this->current_stream, position),
                                 BASS_POS_BYTE | BASS_MIXER_CHAN_NORAMPIN);
 
-  log_error("failed to set position");
+  log_bass_error("failed to set position");
 
 }
 
@@ -178,15 +183,15 @@ void GrassAudio<T>::load_next_file() {
                                                  BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
   }
 
-  log_error("failed to create stream");
+  log_bass_error("failed to create stream");
 
   BASS_Mixer_StreamAddChannel(this->mixer_stream,
                               this->current_stream,
-                              BASS_MIXER_CHAN_NORAMPIN);
-  log_error("failed to add stream to mixer");
+                              BASS_MIXER_CHAN_NORAMPIN | BASS_STREAM_AUTOFREE);
+  log_bass_error("failed to add stream to mixer");
 
   BASS_ChannelSetPosition(this->mixer_stream, 0, BASS_POS_BYTE);
-  log_error("failed to set mixer position to 0");
+  log_bass_error("failed to set mixer position to 0");
 
 }
 
@@ -206,7 +211,7 @@ void GrassAudio<T>::previous() {
 }
 
 template<BinaryOrFilePath T>
-DWORD GrassAudio<T>::add_listener(GrassAudio::Event event,
+DWORD GrassAudio<T>::add_listener(GrassAudioEvent event,
                                   const std::function<void()> &callback,
                                   bool remove_on_trigger, double position) const {
   const auto c_callback = callable_to_pointer([callback](HSYNC, DWORD, DWORD, void *) { callback(); });
@@ -233,12 +238,17 @@ DWORD GrassAudio<T>::add_listener(GrassAudio::Event event,
   default:break;
   }
 
-  log_error("failed to set listener");
+  log_bass_error("failed to set listener");
   return listener;
 }
 
 template<BinaryOrFilePath T>
 void GrassAudio<T>::remove_listener(DWORD listener) const {
   BASS_ChannelRemoveSync(this->mixer_stream, listener);
-  log_error("failed to remove listener");
+  log_bass_error("failed to remove listener");
+}
+
+template<BinaryOrFilePath T>
+GrassAudio<T>::~GrassAudio() {
+  BASS_StreamFree(this->mixer_stream);
 }

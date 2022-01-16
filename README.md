@@ -1,34 +1,30 @@
 # Grass Audio
-An audio player class for node, it uses the bass library as engine.
+
+A gapless audio player class for node, it uses the bass library as engine.
 **NOTE: this library is on early development**
 
 ## Get started
+
+**NOTE: You will need a c++20 compiler. For now ,available targets are win_x64**
+
 Install by running
+
 ```bash
 npm install grass-audio
 ```
+
 Import the module
+
 ```js
-import { GrassAudio } from 'grass-audio'
+import GrassAudio from "grass-audio";
 ```
-Now you can instantiate the class with
+
+Now you can instantiate the class with, specifying a file path array
+
 ```js
-const audioPlayer = new GrassAudio(); 
+const audioPlayer = new GrassAudio(["path1", "path2", "..."]);
 ```
-With that you can now use the different methods
 
-## Reference
+## Api reference
 
-| Method                    | Description                                                                              |
-|---------------------------|------------------------------------------------------------------------------------------|
-| setFile(path)             | load the file from the given path, can block the main thread                             |
-| setFileFromMemory(buffer) | load the file from a node Buffer, this is the recommended way to load files              |
-| play()                    | play the loaded file                                                                     |
-| pause()                   | pause the playback                                                                       |
-| stop()                    | stop the playback, the file will remain set                                              |
-| setPosition(position)     | set the playback position, the position is given in seconds                              |
-| getPosition()             | get the current playback position                                                        |
-| setVolume()               | set the volume, valid values are from 0 to 1, values greater than one will be set to one |
-| on()                      | set an event listener, valid events are 'end', 'positionReached' and 'positionSet'       |
-| once()                    | same as on() but it will remove the listener after the callback is called                |
-
+please check the index.d.ts file

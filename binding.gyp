@@ -4,8 +4,8 @@
       "target_name": "grass_audio",
       "sources": [
         "cpp_src/binding.cpp",
-        "cpp_src/grass_audio_wrapper.cpp",
-        "cpp_src/grass_audio.cpp"
+        "cpp_src/GrassAudioWrapper.cpp",
+        "cpp_src/Grass_Audio.h"
       ],
       "conditions": [
         [
@@ -14,7 +14,7 @@
             "msvs_settings": {
               "VCCLCompilerTool": {
                 "AdditionalOptions": [
-                  "-std:c++17"
+                  "-std:c++20"
                 ]
               }
             }
@@ -29,13 +29,16 @@
         "NAPI_DISABLE_CPP_EXCEPTIONS"
       ],
       "libraries": [
-        "<(module_root_dir)/cpp_src/lib/bass/x64/bass.lib"
+        "<(module_root_dir)/cpp_src/lib/bass/x64/bass.lib",
+        "<(module_root_dir)/cpp_src/lib/bass/x64/bassmix.lib"
+
       ],
       "copies": [
         {
           "destination": "<(module_root_dir)/build/Release/",
           "files": [
-            "<(module_root_dir)/cpp_src/lib/bass/x64/bass.dll"
+            "<(module_root_dir)/cpp_src/lib/bass/x64/bass.dll",
+            "<(module_root_dir)/cpp_src/lib/bass/x64/bassmix.dll"
           ]
         }
       ]

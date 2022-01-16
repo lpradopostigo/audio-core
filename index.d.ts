@@ -1,17 +1,23 @@
-declare module 'grass-audio'{
-  export class GrassAudio {
-    setFile(path: string): void;
-    setFileFromMemory(buffer: Buffer): void;
+declare module "grass-audio" {
+  class GrassAudio {
+    constructor(files: string[]);
     play(): void;
     pause(): void;
+    previous(): void;
+    next(): void;
     stop(): void;
+    skipToFile(index: number): void;
     setPosition(position: number): void;
     getPosition(): number;
+    getCurrentFileIndex(): number;
     setVolume(volume: number): void;
-    on(event: string, callback: () => void, ...args: any): number;
-    once(event: string, callback: () => void, ...args: any): number;
+    addListener(
+      event: "end" | "positionReached",
+      callback: () => void,
+      removeOnTrigger?: boolean,
+      ...args: any
+    ): number;
+    removeListener(listener: number);
   }
+  export = GrassAudio;
 }
-
-
-

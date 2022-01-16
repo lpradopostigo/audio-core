@@ -6,9 +6,10 @@
   "types": "index.d.ts",
   "gypfile": true,
   "scripts": {
-    "build:dev": "node-gyp rebuild --debug && cp cpp_src/lib/bass/x64/bass.dll build/Debug/",
+    "build:dev": "node-gyp rebuild --debug && cp cpp_src/lib/bass/x64/bass.dll cpp_src/lib/bass/x64/bassmix.dll build/Debug/",
     "build:prod": "node-gyp clean && node-gyp configure && node-gyp build --release",
-    "clean": "node-gyp clean"
+    "clean": "node-gyp clean",
+    "prettier": "prettier -w *.js *.ts"
   },
   "repository": {
     "type": "git",

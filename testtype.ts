@@ -1,1 +1,1 @@
-const {GrassAudio} = require('grass-audio')
+const GrassAudio = require("grass-audio");

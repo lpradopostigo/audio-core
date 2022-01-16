@@ -44,16 +44,16 @@ int main() {
 //  vector<vector<uint8_t>> files{};
 //  files.push_back(file1);
 //  files.push_back(file2);
-  vector<string> files{"../gapless2.wav","../gapless3.wav"};
+  vector<string> files{"../gapless2.wav", "../gapless3.wav"};
 
   const auto grass = new GrassAudio(files);
-  grass->set_position(320);
+  grass->set_position(310);
   grass->play();
 
 //  const auto
 //      listener = grass->add_listener(GrassAudio<vector<uint8_t>>::END, [] { cout << "reached" << endl; }, false, 310);
-  Sleep(2000);
-
+  Sleep(8000);
+  grass->skip_to_file(1);
 
   Sleep(8000);
 
