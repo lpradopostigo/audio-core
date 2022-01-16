@@ -38,7 +38,7 @@ public:
 
   [[maybe_unused]] [[nodiscard]] size_t get_current_file_index() const;
 
-  [[maybe_unused]] void remove_listener(DWORD listener) const; //TODO
+  [[maybe_unused]] void remove_listener(DWORD listener) const;
 
 private:
   std::vector<T> files{};
@@ -165,7 +165,7 @@ void GrassAudio<T>::load_next_file() {
 
   if constexpr(std::is_same_v<T, std::string>) {
     this->current_stream = BASS_StreamCreateFile(false,
-                                                 this->files[current_file_index],
+                                                 this->files[current_file_index].c_str(),
                                                  0,
                                                  0,
                                                  BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
@@ -228,7 +228,7 @@ DWORD GrassAudio<T>::add_listener(GrassAudio::Event event,
                                    0,
                                    c_callback, nullptr);
     break;
-  };
+  }
 
   default:break;
   }
