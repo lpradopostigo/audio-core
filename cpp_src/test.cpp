@@ -41,21 +41,26 @@ std::vector<uint8_t> read_file(const char *filename) {
 int main() {
 //  auto file1 = read_file("../gapless2.wav");
 //  auto file2 = read_file("../gapless3.wav");
-//  vector<vector<uint8_t>> files{};
-//  files.push_back(file1);
-//  files.push_back(file2);
-  vector<string> files{"../gapless2.wav", "../gapless3.wav"};
+//  vector<vector<uint8_t>> files_{};
+//  files_.push_back(file1);
+//  files_.push_back(file2);
+  vector<string> files1{"../gapless2.wav", "../gapless3.wav"};
+  vector<string> files2{"../gapless1.wav", "../gapless2.wav"};
 
-  const auto grass = new GrassAudio(files);
-  grass->set_position(310);
+  const auto grass = new GrassAudio();
   grass->play();
+  grass->set_files(files1);
+
+//  grass->set_position(310);
+//  grass->play();
 
 //  const auto
-//      listener = grass->add_listener(GrassAudio<vector<uint8_t>>::END, [] { cout << "reached" << endl; }, false, 310);
+//      end_sync = grass->add_listener(GrassAudio<vector<uint8_t>>::END, [] { cout << "reached" << endl; }, false, 310);
   Sleep(8000);
-  grass->skip_to_file(1);
+
 
   Sleep(8000);
+//  grass->skip_to_file(1);
 
 //  grass->set_position(250);
 
