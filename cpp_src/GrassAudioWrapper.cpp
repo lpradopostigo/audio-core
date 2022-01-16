@@ -11,6 +11,7 @@ Napi::Object GrassAudioWrapper::init(Napi::Env env, Napi::Object exports) {
       InstanceMethod("skipToFile", &GrassAudioWrapper::skip_to_file),
       InstanceMethod("getCurrentFileIndex", &GrassAudioWrapper::get_current_file_index),
       InstanceMethod("setPosition", &GrassAudioWrapper::set_position),
+      InstanceMethod("setFiles", &GrassAudioWrapper::set_files),
       InstanceMethod("setVolume", &GrassAudioWrapper::set_volume),
       InstanceMethod("getPosition", &GrassAudioWrapper::get_position),
       InstanceMethod("addListener", &GrassAudioWrapper::add_listener),
@@ -27,16 +28,25 @@ Napi::Object GrassAudioWrapper::init(Napi::Env env, Napi::Object exports) {
 }
 
 GrassAudioWrapper::GrassAudioWrapper(const Napi::CallbackInfo &info) : ObjectWrap(info) {
-  const auto file_paths = info[0].As<Napi::Array>();
+  if (info.Length() == 1) {
+    const auto file_paths = info[0].As<Napi::Array>();
 
-  std::vector<std::string> file_paths_native;
-  file_paths_native.resize(file_paths.Length());
+    std::vector<std::string> file_paths_native;
+    file_paths_native.resize(file_paths.Length());
 
-  for (uint32_t i = 0; i < file_paths.Length(); i++) {
-    file_paths_native[i] = file_paths[i].As<Napi::String>().Utf8Value();
+    for (uint32_t i = 0; i < file_paths.Length(); i++) {
+      file_paths_native[i] = file_paths[i].As<Napi::String>().Utf8Value();
+    }
+
+    this->grass_audio_ = new GrassAudio(file_paths_native);
+
+  } else if (info.Length() == 0) {
+    this->grass_audio_ = new GrassAudio();
+  } else {
+    const auto error = Napi::Error::New(info.Env(), "invalid arguments");
+    error.ThrowAsJavaScriptException();
   }
 
-  this->grass_audio_ = new GrassAudio(file_paths_native);
 }
 
 void GrassAudioWrapper::play(const Napi::CallbackInfo &info) {
@@ -70,7 +80,7 @@ Napi::Value GrassAudioWrapper::add_listener(const Napi::CallbackInfo &info) {
   const auto env = info.Env();
   const auto event_name = info[0].As<Napi::String>().Utf8Value();
   const auto callback = Napi::ThreadSafeFunction::New(env, info[1].As<Napi::Function>(), "", 0, 2);
-  const auto remove_on_trigger = info[2].As<Napi::Boolean>().Value();
+  const auto remove_on_trigger = info.Length() >= 3 ? info[2].As<Napi::Boolean>().Value() : false;
 
   const auto callback_wrapper = [callback]() {
     callback.NonBlockingCall();
@@ -81,7 +91,7 @@ Napi::Value GrassAudioWrapper::add_listener(const Napi::CallbackInfo &info) {
   if (event_name == "end") {
     listener = this->grass_audio_->add_listener(GrassAudioEvent::END, callback_wrapper, remove_on_trigger);
   } else if (event_name == "positionReached") {
-    const auto position = info[2].As<Napi::Number>().DoubleValue();
+    const auto position = info[3].As<Napi::Number>().DoubleValue();
     listener = this->grass_audio_->add_listener(GrassAudioEvent::POSITION_REACHED,
                                                 callback_wrapper,
                                                 remove_on_trigger,
@@ -113,6 +123,23 @@ Napi::Value GrassAudioWrapper::get_current_file_index(const Napi::CallbackInfo &
   const auto index = this->grass_audio_->get_current_file_index();
 
   return Napi::Number::New(info.Env(), static_cast<double>(index));
+}
+
+void GrassAudioWrapper::set_files(const Napi::CallbackInfo &info) {
+  const auto file_paths = info[0].As<Napi::Array>();
+
+  std::vector<std::string> file_paths_native;
+  file_paths_native.resize(file_paths.Length());
+
+  for (uint32_t i = 0; i < file_paths.Length(); i++) {
+    file_paths_native[i] = file_paths[i].As<Napi::String>().Utf8Value();
+  }
+
+  this->grass_audio_->set_files(file_paths_native);
+}
+
+GrassAudioWrapper::~GrassAudioWrapper() {
+  delete this->grass_audio_;
 }
 
 

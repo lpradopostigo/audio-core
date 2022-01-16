@@ -6,6 +6,8 @@ class GrassAudioWrapper : public Napi::ObjectWrap<GrassAudioWrapper> {
 public:
   static Napi::Object init(Napi::Env env, Napi::Object exports);
   explicit GrassAudioWrapper(const Napi::CallbackInfo &info);
+  ~GrassAudioWrapper() override;
+
 private:
   GrassAudio<std::string> *grass_audio_;
 
@@ -21,5 +23,6 @@ private:
   Napi::Value get_position(const Napi::CallbackInfo &info);
   Napi::Value add_listener(const Napi::CallbackInfo &info);
   void remove_listener(const Napi::CallbackInfo &info);
+  void set_files(const Napi::CallbackInfo &info);
 };
 

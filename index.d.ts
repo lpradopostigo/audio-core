@@ -1,6 +1,7 @@
 declare module "grass-audio" {
   class GrassAudio {
-    constructor(files: string[]);
+    constructor(files?: string[]);
+    setFiles(files:string[]);
     play(): void;
     pause(): void;
     previous(): void;
