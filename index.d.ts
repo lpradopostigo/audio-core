@@ -1,7 +1,7 @@
 declare module "grass-audio" {
   class GrassAudio {
     constructor(files?: string[]);
-    setFiles(files:string[]);
+    setFiles(files: string[]);
     play(): void;
     pause(): void;
     previous(): void;
@@ -19,6 +19,8 @@ declare module "grass-audio" {
       ...args: any
     ): number;
     removeListener(listener: number);
+    getLength(): number;
+    getStatus(): "STOPPED" | "PAUSED" | "PLAYING";
   }
   export = GrassAudio;
 }

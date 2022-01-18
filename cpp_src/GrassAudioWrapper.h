@@ -24,5 +24,8 @@ private:
   Napi::Value add_listener(const Napi::CallbackInfo &info);
   void remove_listener(const Napi::CallbackInfo &info);
   void set_files(const Napi::CallbackInfo &info);
+  Napi::Value get_length(const Napi::CallbackInfo &info);
+  Napi::Value get_status(const Napi::CallbackInfo &info);
+
 };
 

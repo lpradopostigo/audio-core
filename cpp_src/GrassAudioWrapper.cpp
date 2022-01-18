@@ -16,6 +16,8 @@ Napi::Object GrassAudioWrapper::init(Napi::Env env, Napi::Object exports) {
       InstanceMethod("getPosition", &GrassAudioWrapper::get_position),
       InstanceMethod("addListener", &GrassAudioWrapper::add_listener),
       InstanceMethod("removeListener", &GrassAudioWrapper::remove_listener),
+      InstanceMethod("getLength", &GrassAudioWrapper::get_length),
+      InstanceMethod("getStatus", &GrassAudioWrapper::get_status),
   });
 
   auto *constructor = new Napi::FunctionReference();
@@ -140,6 +142,30 @@ void GrassAudioWrapper::set_files(const Napi::CallbackInfo &info) {
 
 GrassAudioWrapper::~GrassAudioWrapper() {
   delete this->grass_audio_;
+}
+
+Napi::Value GrassAudioWrapper::get_length(const Napi::CallbackInfo &info) {
+  const auto length = this->grass_audio_->get_length();
+  return Napi::Number::New(info.Env(), static_cast<double>(length));
+}
+
+Napi::Value GrassAudioWrapper::get_status(const Napi::CallbackInfo &info) {
+  const auto env = info.Env();
+  const auto status = this->grass_audio_->get_status();
+  switch (status) {
+  case BASS_ACTIVE_PLAYING: {
+    return Napi::String::New(env, "PLAYING");
+  }
+
+  case BASS_ACTIVE_PAUSED: {
+    return Napi::String::New(env, "PAUSED");
+  }
+
+  default:
+  case BASS_ACTIVE_STOPPED: {
+    return Napi::String::New(env, "STOPPED");
+  }
+  }
 }
 
 

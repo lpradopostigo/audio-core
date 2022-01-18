@@ -39,34 +39,33 @@ std::vector<uint8_t> read_file(const char *filename) {
 }
 
 int main() {
-//  auto file1 = read_file("../gapless2.wav");
-//  auto file2 = read_file("../gapless3.wav");
-//  vector<vector<uint8_t>> files_{};
-//  files_.push_back(file1);
-//  files_.push_back(file2);
-  vector<string> files1{"../gapless2.wav", "../gapless3.wav"};
+  vector<string> files1{"../short.wav/**/", "../gapless3.wav"};
   vector<string> files2{"../gapless1.wav", "../gapless2.wav"};
 
   const auto grass = new GrassAudio();
-  grass->play();
   grass->set_files(files1);
 
-//  grass->set_position(310);
-//  grass->play();
+  grass->play();
+  cout << grass->get_length() << endl;
+  cout << grass->get_position() << endl;
+  Sleep(1000);
+  cout << grass->get_position() << endl;
 
-//  const auto
-//      end_sync = grass->add_listener(GrassAudio<vector<uint8_t>>::END, [] { cout << "reached" << endl; }, false, 310);
-  Sleep(8000);
+  Sleep(1000);
+  cout << grass->get_position() << endl;
+
+  Sleep(1000);
+  cout << grass->get_position() << endl;
 
 
-  Sleep(8000);
-//  grass->skip_to_file(1);
+  Sleep(1000);
+  grass->set_position(2);
+  cout << grass->get_position() << endl;
 
-//  grass->set_position(250);
 
-//  cout << grass->get_current_file_index() << endl;
 
 
   system("Pause");
+  delete grass;
 
 }

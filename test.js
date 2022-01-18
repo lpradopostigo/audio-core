@@ -4,7 +4,7 @@ const filePaths = ["gapless2.wav", "gapless3.wav"];
 const audio = new GrassAudio();
 
 (async () => {
-  audio.setFiles(filePaths)
+  audio.setFiles(filePaths);
   audio.play();
   audio.setPosition(320);
   // let x = 0
@@ -19,9 +19,8 @@ const audio = new GrassAudio();
   setTimeout(() => {
     // audio.next()
     // audio.setPosition(0)
-    audio.setFiles(filePaths)
+    audio.setFiles(filePaths);
     audio.play();
-
   }, 8000);
   // setTimeout(() => {
   //   audio.play()

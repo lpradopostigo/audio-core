@@ -42,6 +42,8 @@ public:
 
   [[maybe_unused]] void remove_listener(DWORD listener) const;
   [[maybe_unused]] void set_files(std::vector<T> files);
+  [[maybe_unused]] [[nodiscard]] QWORD get_length() const;
+  [[maybe_unused]] [[nodiscard]] DWORD get_status() const;
 
 private:
   std::vector<T> files_{};
@@ -291,4 +293,21 @@ void GrassAudio<T>::set_files(std::vector<T> files) {
   this->current_stream = 0;
 
   this->load_next_file();
+}
+
+template<BinaryOrFilePath T>
+QWORD GrassAudio<T>::get_length() const {
+  const auto length_in_bytes = BASS_ChannelGetLength(this->current_stream, BASS_POS_BYTE);
+  if (BASS_ErrorGetCode() != BASS_OK) {
+    return 0;
+  }
+
+  const auto length_in_seconds = BASS_ChannelBytes2Seconds(this->current_stream, length_in_bytes);
+  log_bass_error("failed to convert length byte to seconds");
+  return length_in_seconds;
+}
+
+template<BinaryOrFilePath T>
+DWORD GrassAudio<T>::get_status() const {
+  return BASS_ChannelIsActive(this->mixer_stream);
 }
