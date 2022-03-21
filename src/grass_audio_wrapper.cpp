@@ -1,5 +1,5 @@
 #include <iostream>
-#include "GrassAudioWrapper.h"
+#include "../include/grass_audio_wrapper.hpp"
 
 Napi::Object GrassAudioWrapper::init(Napi::Env env, Napi::Object exports) {
   Napi::Function func = DefineClass(env, "GrassAudio", {
@@ -118,7 +118,7 @@ void GrassAudioWrapper::previous(const Napi::CallbackInfo &info) {
 
 void GrassAudioWrapper::skip_to_file(const Napi::CallbackInfo &info) {
   const auto index = info[0].As<Napi::Number>().Int32Value();
-  this->grass_audio_->skip_to_file(index);
+  this->grass_audio_->skip_to_index(index);
 }
 
 Napi::Value GrassAudioWrapper::get_current_file_index(const Napi::CallbackInfo &info) {

@@ -1,44 +1,38 @@
 cmake_minimum_required(VERSION 3.21)
-project(grass_audio)
 
-
+project(grass_audio
+        VERSION 0.1
+        LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20)
-include_directories(cpp_src/lib/bass/ node_modules/node-addon-api node_modules/node-api-headers/include)
+include_directories(
+        node_modules/node-addon-api
+        node_modules/node-api-headers/include)
+
+add_subdirectory(lib)
+add_subdirectory(src)
+add_subdirectory(test)
+
+add_library(grass_audio INTERFACE include/grass_audio.hpp)
+target_include_directories(grass_audio INTERFACE include)
+target_link_libraries(grass_audio INTERFACE bass bassmix log)
+
+add_executable(main test/main.cpp)
+target_link_libraries(main PUBLIC log bass bassmix)
+add_custom_command(TARGET main POST_BUILD
+        COMMAND
+        ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/lib/bass/windows/x64/bass.dll
+        ${PROJECT_BINARY_DIR}/bass.dll)
+
+add_custom_command(TARGET main POST_BUILD
+        COMMAND
+        ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/lib/bass/windows/x64/bassmix.dll
+        ${PROJECT_BINARY_DIR}/bassmix.dll)
 
 
-add_library(bass STATIC IMPORTED)
-set_target_properties(
-        bass
-        PROPERTIES LINKER_LANGUAGE C
-        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/cpp_src/lib/bass/x64/bass.lib)
-
-add_library(bassmix STATIC IMPORTED)
-set_target_properties(
-        bassmix
-        PROPERTIES LINKER_LANGUAGE C
-        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/cpp_src/lib/bass/x64/bassmix.lib)
-
-
-add_library(grass_audio cpp_src/GrassAudio.h)
-set_target_properties(
-        grass_audio
-        PROPERTIES LINKER_LANGUAGE CXX)
-
-add_library(grass_audio_wrapper cpp_src/GrassAudioWrapper.cpp cpp_src/GrassAudioWrapper.h)
-add_library(binding cpp_src/binding.cpp)
-
-add_library(callable_to_pointer cpp_src/callable_to_pointer.hpp)
+add_library(callable_to_pointer include/callable_to_pointer.hpp)
 set_target_properties(
         callable_to_pointer
         PROPERTIES LINKER_LANGUAGE CXX)
 
-
-add_executable(test cpp_src/test.cpp)
-target_link_libraries(test grass_audio bass bassmix)
-
-add_executable(basic_playback cpp_src/tests/basic_playback.cpp)
-target_link_libraries(basic_playback grass_audio bass bassmix)
-
-
-add_executable(test_set_files cpp_src/tests/test_set_files.cpp)
-target_link_libraries(test_set_files grass_audio bass bassmix)

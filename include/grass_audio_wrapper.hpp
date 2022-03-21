@@ -1,6 +1,6 @@
 #pragma once
 #include "napi.h"
-#include "GrassAudio.h"
+#include "grass_audio.hpp"
 
 class GrassAudioWrapper : public Napi::ObjectWrap<GrassAudioWrapper> {
 public:
