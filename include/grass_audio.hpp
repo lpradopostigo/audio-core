@@ -59,7 +59,11 @@ public:
 			const std::function<void()>& callback,
 			bool remove_on_trigger = false, double position = 0) const;
 	void remove_listener(DWORD listener) const;
+
+	static void set_plugin_path(std::string plugin_path);
+	static std::string get_plugin_path();
 private:
+	static std::string plugin_path_;
 	std::vector<std::string> files_{};
 	HSTREAM current_stream_{NO_STREAM};
 	int current_file_index_{0};

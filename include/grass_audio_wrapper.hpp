@@ -4,28 +4,25 @@
 
 class GrassAudioWrapper : public Napi::ObjectWrap<GrassAudioWrapper> {
 public:
-  static Napi::Object init(Napi::Env env, Napi::Object exports);
-  explicit GrassAudioWrapper(const Napi::CallbackInfo &info);
-  ~GrassAudioWrapper() override;
+	static Napi::Object init(Napi::Env env, Napi::Object exports);
+	explicit GrassAudioWrapper(const Napi::CallbackInfo& info);
+	~GrassAudioWrapper() override;
 
 private:
-  GrassAudio<std::string> *grass_audio_;
+	GrassAudio* grass_audio_;
 
-  void play(const Napi::CallbackInfo &info);
-  void pause(const Napi::CallbackInfo &info);
-  void stop(const Napi::CallbackInfo &info);
-  void next(const Napi::CallbackInfo &info);
-  void previous(const Napi::CallbackInfo &info);
-  void skip_to_file(const Napi::CallbackInfo &info);
-  Napi::Value get_current_file_index(const Napi::CallbackInfo &info);
-  void set_position(const Napi::CallbackInfo &info);
-  void set_volume(const Napi::CallbackInfo &info);
-  Napi::Value get_position(const Napi::CallbackInfo &info);
-  Napi::Value add_listener(const Napi::CallbackInfo &info);
-  void remove_listener(const Napi::CallbackInfo &info);
-  void set_files(const Napi::CallbackInfo &info);
-  Napi::Value get_length(const Napi::CallbackInfo &info);
-  Napi::Value get_status(const Napi::CallbackInfo &info);
-
+	void play(const Napi::CallbackInfo& info);
+	void pause(const Napi::CallbackInfo& info);
+	void stop(const Napi::CallbackInfo& info);
+	void next(const Napi::CallbackInfo& info);
+	void previous(const Napi::CallbackInfo& info);
+	void skip_to_index(const Napi::CallbackInfo& info);
+	void set_volume(const Napi::CallbackInfo& info);
+	Napi::Value add_listener(const Napi::CallbackInfo& info);
+	void remove_listener(const Napi::CallbackInfo& info);
+	void set_files(const Napi::CallbackInfo& info);
+	Napi::Value get_state(const Napi::CallbackInfo& info);
+	void seek(const Napi::CallbackInfo& info);
+	static void setup_environment(const Napi::CallbackInfo& info);
 };
 

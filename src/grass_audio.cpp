@@ -1,4 +1,7 @@
 #include "grass_audio.hpp"
+#include <utility>
+
+std::string GrassAudio::plugin_path_ = ".";
 
 GrassAudio::GrassAudio(SampleRate sample_rate) {
 	load_bass_plugins();
@@ -201,6 +204,15 @@ void GrassAudio::log_bass_error(const std::string& message) {
 }
 
 void GrassAudio::load_bass_plugins() {
-	BASS_PluginLoad("bassflac.dll", 0);
+	log_info("plugin_path is %s", plugin_path_.c_str());
+	BASS_PluginLoad(std::string{plugin_path_ + "/" + "bassflac.dll"}.c_str(), 0);
 	log_bass_error("failed to load bassflac");
+}
+
+void GrassAudio::set_plugin_path(std::string plugin_path) {
+	plugin_path_ = std::move(plugin_path);
+}
+
+std::string GrassAudio::get_plugin_path() {
+	return plugin_path_;
 }

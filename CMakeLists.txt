@@ -4,9 +4,6 @@ project(grass_audio
         VERSION 0.1
         LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20)
-include_directories(
-        node_modules/node-addon-api
-        node_modules/node-api-headers/include)
 
 add_subdirectory(lib)
 add_subdirectory(src)

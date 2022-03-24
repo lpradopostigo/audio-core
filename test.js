@@ -1,12 +1,12 @@
-const GrassAudio = require("./build/Debug/grass_audio.node").GrassAudio;
-
+const GrassAudio = require("./index");
 const filePaths = ["gapless2.wav", "gapless3.wav"];
 const audio = new GrassAudio();
 
 (async () => {
   audio.setFiles(filePaths);
   audio.play();
-  audio.setPosition(320);
+  audio.seek(320);
+  console.log(audio.getState());
   // let x = 0
   // const listener = audio.once('positionReached', () => {
   //   console.log("js")
