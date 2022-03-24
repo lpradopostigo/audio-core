@@ -1,8 +1,9 @@
 #include <iostream>
 #include "bass.h"
-#include "../include/grass_audio.hpp"
+#include "grass_audio.hpp"
 #include <fstream>
 #include <iterator>
+#include "log.h"
 using namespace std;
 
 std::vector<uint8_t> read_file(const char* filename) {
@@ -32,14 +33,17 @@ std::vector<uint8_t> read_file(const char* filename) {
 }
 
 int main() {
-	vector<string> files1{"../../short.wav", "../../gapless3.wav"};
+	vector<string> files1{"../../short.flac", "../../gapless3.wav"};
 	vector<string> files2{"../../gapless1.wav", "../../gapless2.wav"};
 
 	GrassAudio grass{};
-	grass.set_files(files2);
+	grass.set_files(files1);
 
 	grass.play();
-	Sleep(1000);
+	grass.seek(1);
+
+	Sleep(2000);
+	cout << grass.get_state().file_position << endl;
 
 	Sleep(1000);
 

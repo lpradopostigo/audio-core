@@ -16,3 +16,11 @@ set_target_properties(
         IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/bass/windows/x64/bassmix.dll"
         IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/bass/windows/x64/bassmix.lib"
         INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/bass")
+
+add_library(bassflac STATIC IMPORTED GLOBAL)
+set_target_properties(
+        bassflac
+        PROPERTIES
+        IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/bass/windows/x64/bassflac.dll"
+        IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/bass/windows/x64/bassflac.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/bass")

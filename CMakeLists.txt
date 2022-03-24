@@ -12,10 +12,6 @@ add_subdirectory(lib)
 add_subdirectory(src)
 add_subdirectory(test)
 
-add_library(grass_audio INTERFACE include/grass_audio.hpp)
-target_include_directories(grass_audio INTERFACE include)
-target_link_libraries(grass_audio INTERFACE bass bassmix log)
-
 add_executable(main test/main.cpp)
 target_link_libraries(main PUBLIC log bass bassmix)
 add_custom_command(TARGET main POST_BUILD

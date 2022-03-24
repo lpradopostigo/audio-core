@@ -11,3 +11,9 @@ add_custom_command(TARGET test POST_BUILD
         ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_SOURCE_DIR}/lib/bass/windows/x64/bassmix.dll
         $<TARGET_FILE_DIR:test>/bassmix.dll)
+
+add_custom_command(TARGET test POST_BUILD
+        COMMAND
+        ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/lib/bass/windows/x64/bassflac.dll
+        $<TARGET_FILE_DIR:test>/bassflac.dll)
