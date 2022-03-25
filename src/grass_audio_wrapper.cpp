@@ -131,17 +131,20 @@ Napi::Value GrassAudioWrapper::get_state(const Napi::CallbackInfo& info) {
 	std::string js_playback_state{};
 
 	switch (state.playback_state) {
-	case PLAYING: {
+	case GrassAudioPlaybackState::PLAYING: {
 		js_playback_state = "playing";
+		break;
 	}
 
-	case PAUSED: {
+	case GrassAudioPlaybackState::PAUSED: {
 		js_playback_state = "paused";
+		break;
 	}
 
 	default:
-	case STOPPED: {
+	case GrassAudioPlaybackState::STOPPED: {
 		js_playback_state = "stopped";
+		break;
 	}
 	}
 
