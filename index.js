@@ -1,7 +1,6 @@
-const addonPath = "./build/Release";
 const path = require("path");
-const { GrassAudio } = require(path.resolve(addonPath, "grass_audio.node"));
+const { GrassAudio } = require("./build/Release/grass_audio.node");
 
-GrassAudio.setupEnvironment(path.resolve(addonPath));
+GrassAudio.setupEnvironment(path.join(__dirname, "build/Release"));
 
 module.exports = GrassAudio;
