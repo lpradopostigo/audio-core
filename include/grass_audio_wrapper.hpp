@@ -18,8 +18,6 @@ private:
 	void previous(const Napi::CallbackInfo& info);
 	void skip_to_index(const Napi::CallbackInfo& info);
 	void set_volume(const Napi::CallbackInfo& info);
-	Napi::Value add_listener(const Napi::CallbackInfo& info);
-	void remove_listener(const Napi::CallbackInfo& info);
 	void set_files(const Napi::CallbackInfo& info);
 	Napi::Value get_state(const Napi::CallbackInfo& info);
 	void seek(const Napi::CallbackInfo& info);

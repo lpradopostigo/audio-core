@@ -14,7 +14,7 @@ extern "C" {
 #include "log.h"
 }
 
-#define NO_STREAM 0
+#define NO_HANDLER 0
 
 enum GrassAudioPlaybackState {
   PLAYING = BASS_ACTIVE_PLAYING,
@@ -22,11 +22,6 @@ enum GrassAudioPlaybackState {
   PAUSED = BASS_ACTIVE_PAUSED,
   STALLED = BASS_ACTIVE_STALLED,
   PAUSED_DEVICE = BASS_ACTIVE_PAUSED_DEVICE
-};
-
-enum GrassAudioEvent {
-  POSITION_REACHED, // FIX
-  END,
 };
 
 enum SampleRate {
@@ -55,23 +50,25 @@ public:
 	void seek(double position) const;
 	[[nodiscard]]  GrassAudioState get_state() const;
 	void set_volume(float value) const;
-	[[nodiscard]] DWORD add_listener(GrassAudioEvent event,
-			const std::function<void()>& callback,
-			bool remove_on_trigger = false, double position = 0) const;
-	void remove_listener(DWORD listener) const;
-
 	static void set_plugin_path(std::string plugin_path);
 	static std::string get_plugin_path();
 private:
+	void (* handle_sync_)(HSYNC, DWORD, DWORD, void*) = callable_to_pointer([this](HSYNC, DWORD, DWORD, void*) -> void {
+	  current_file_index_++;
+	  load_next_file();
+	});
+	HSYNC sync_handler_ = NO_HANDLER;
 	static std::string plugin_path_;
 	std::vector<std::string> files_{};
-	HSTREAM current_stream_{NO_STREAM};
-	int current_file_index_{0};
-	HSTREAM mixer_stream_{NO_STREAM};
+	HSTREAM current_stream_ = NO_HANDLER;
+	int current_file_index_ = 0;
+	HSTREAM mixer_stream_ = NO_HANDLER;
 
 	void load_next_file();
 	void flush_mixer() const;
 	int resolve_index(int index);
 	static void log_bass_error(const std::string& message);
 	static void load_bass_plugins();
+	void set_sync();
+	void remove_sync();
 };

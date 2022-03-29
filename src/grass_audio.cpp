@@ -14,18 +14,6 @@ GrassAudio::GrassAudio(SampleRate sample_rate) {
 
 	mixer_stream_ = BASS_Mixer_StreamCreate(sample_rate, 2, BASS_MIXER_END);
 	log_bass_error("mixer stream creation failed");
-
-	const auto c_callback{callable_to_pointer([this](HSYNC, DWORD, DWORD, void*) -> void {
-	  current_file_index_++;
-	  load_next_file();
-	})};
-
-	BASS_ChannelSetSync(mixer_stream_,
-			BASS_SYNC_END | BASS_SYNC_MIXTIME,
-			0,
-			reinterpret_cast<SYNCPROC (__stdcall*)>(c_callback),
-			nullptr);
-	log_bass_error("BASS_ChannelSetSync failed");
 }
 
 GrassAudio::~GrassAudio() {
@@ -34,29 +22,44 @@ GrassAudio::~GrassAudio() {
 }
 
 void GrassAudio::play() const {
-	if (current_stream_ == NO_STREAM) { return; }
+	if (current_stream_ == NO_HANDLER) { return; }
 	BASS_ChannelPlay(mixer_stream_, FALSE);
 	log_bass_error("failed to play the stream");
 }
 
 void GrassAudio::pause() const {
+	if (current_stream_ == NO_HANDLER) { return; }
 	BASS_ChannelPause(mixer_stream_);
 	log_bass_error("failed to pause the stream");
 }
 
 void GrassAudio::stop() {
-	pause();
-	flush_mixer();
-	BASS_Mixer_ChannelRemove(current_stream_);
-	log_bass_error("failed to remove the stream");
+	remove_sync();
+
+	if (current_stream_ != NO_HANDLER) {
+		BASS_Mixer_ChannelRemove(current_stream_);
+		log_bass_error("failed to remove the stream");
+		current_stream_ = NO_HANDLER;
+	}
+
 	current_file_index_ = 0;
 	load_next_file();
+	set_sync();
 }
 
 void GrassAudio::skip_to_index(int index) {
+	remove_sync();
+	const auto playback_state =
+			static_cast<const GrassAudioPlaybackState>(BASS_ChannelIsActive(mixer_stream_));
 	BASS_Mixer_ChannelRemove(current_stream_);
+	log_bass_error("could not remove the stream from the mixer");
 	current_file_index_ = resolve_index(index);
 	load_next_file();
+	set_sync();
+
+	if (playback_state == GrassAudioPlaybackState::PLAYING) {
+		play();
+	}
 }
 
 void GrassAudio::next() {
@@ -93,61 +96,23 @@ void GrassAudio::set_volume(float value) const {
 	BASS_ChannelSetAttribute(mixer_stream_, BASS_ATTRIB_VOL, value);
 }
 
-DWORD GrassAudio::add_listener(GrassAudioEvent event, const std::function<void()>& callback, bool remove_on_trigger,
-		double position) const {
-	const auto c_callback{
-			callable_to_pointer([callback](HSYNC, DWORD, DWORD, void*) { callback(); })};
-
-	const auto one_time{remove_on_trigger ? BASS_SYNC_ONETIME : 0};
-
-	DWORD listener{0};
-
-	switch (event) {
-	case POSITION_REACHED: {
-		const auto position_in_bytes{BASS_ChannelSeconds2Bytes(mixer_stream_, position)};
-		listener = BASS_ChannelSetSync(mixer_stream_, BASS_SYNC_POS | BASS_SYNC_MIXTIME | one_time,
-				position_in_bytes,
-				c_callback, nullptr);
-		break;
-	}
-
-	case END: {
-		listener = BASS_ChannelSetSync(mixer_stream_, BASS_SYNC_END | BASS_SYNC_MIXTIME | one_time,
-				0,
-				c_callback, nullptr);
-		break;
-	}
-
-	default:break;
-	}
-
-	log_bass_error("failed to set end_sync");
-	return listener;
-}
-
-void GrassAudio::remove_listener(DWORD listener) const {
-	BASS_ChannelRemoveSync(mixer_stream_, listener);
-	log_bass_error("failed to remove end_sync");
-}
-
 void GrassAudio::set_files(std::vector<std::string> files) {
-	if (current_stream_ != NO_STREAM) {
-		pause();
-		flush_mixer();
+	remove_sync();
+	if (current_stream_ != NO_HANDLER) {
 		BASS_Mixer_ChannelRemove(current_stream_);
+		log_bass_error("failed to remove the stream");
 	}
 
 	files_ = std::move(files);
 	current_file_index_ = 0;
-	current_stream_ = NO_STREAM;
-
+	current_stream_ = NO_HANDLER;
 	load_next_file();
+	set_sync();
 }
 
 void GrassAudio::load_next_file() {
 	const auto remaining_files{files_.size() - current_file_index_};
 	if (remaining_files == 0) {
-		log_info("playlist ended");
 		return;
 	}
 
@@ -169,7 +134,7 @@ void GrassAudio::load_next_file() {
 }
 
 void GrassAudio::flush_mixer() const {
-	if (current_stream_ != NO_STREAM) {
+	if (current_stream_ != NO_HANDLER) {
 		const auto channel_position{BASS_Mixer_ChannelGetPosition(current_stream_, BASS_POS_BYTE)};
 		BASS_Mixer_ChannelSetPosition(current_stream_, channel_position, BASS_POS_BYTE);
 	}
@@ -179,7 +144,7 @@ void GrassAudio::flush_mixer() const {
 int GrassAudio::resolve_index(int index) {
 	const auto file_count{files_.size()};
 	if (file_count > INT_MAX) {
-		log_error("number of files out limits");
+		log_error("number of files out of limits");
 		return INT_MAX;
 	}
 
@@ -216,3 +181,24 @@ void GrassAudio::set_plugin_path(std::string plugin_path) {
 std::string GrassAudio::get_plugin_path() {
 	return plugin_path_;
 }
+
+void GrassAudio::set_sync() {
+	if (sync_handler_ == NO_HANDLER) {
+		sync_handler_ = BASS_ChannelSetSync(mixer_stream_,
+				BASS_SYNC_END | BASS_SYNC_MIXTIME | BASS_SYNC_THREAD,
+				0,
+				handle_sync_,
+				nullptr);
+		log_bass_error("BASS_ChannelSetSync failed");
+	}
+
+}
+
+void GrassAudio::remove_sync() {
+	if (sync_handler_ != NO_HANDLER) {
+		BASS_ChannelRemoveSync(mixer_stream_, sync_handler_);
+		log_bass_error("BASS_ChannelRemoveSync failed");
+		sync_handler_ = NO_HANDLER;
+	}
+}
+

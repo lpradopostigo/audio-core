@@ -12,8 +12,6 @@ Napi::Object GrassAudioWrapper::init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("seek", &GrassAudioWrapper::seek),
 			InstanceMethod("setFiles", &GrassAudioWrapper::set_files),
 			InstanceMethod("setVolume", &GrassAudioWrapper::set_volume),
-			InstanceMethod("addListener", &GrassAudioWrapper::add_listener),
-			InstanceMethod("removeListener", &GrassAudioWrapper::remove_listener),
 			InstanceMethod("getState", &GrassAudioWrapper::get_state),
 			StaticMethod("setupEnvironment", &GrassAudioWrapper::setup_environment)
 	});
@@ -75,39 +73,6 @@ void GrassAudioWrapper::previous(const Napi::CallbackInfo& info) {
 void GrassAudioWrapper::set_volume(const Napi::CallbackInfo& info) {
 	const auto position = info[0].As<Napi::Number>().FloatValue();
 	this->grass_audio_->set_volume(static_cast<int>(position) >= 1 ? 1 : position);
-}
-
-// experimental
-Napi::Value GrassAudioWrapper::add_listener(const Napi::CallbackInfo& info) {
-	const auto env = info.Env();
-	const auto event_name = info[0].As<Napi::String>().Utf8Value();
-	const auto callback = Napi::ThreadSafeFunction::New(env, info[1].As<Napi::Function>(), "", 0, 2);
-	const auto remove_on_trigger = info.Length() >= 3 && info[2].As<Napi::Boolean>().Value();
-
-	const auto callback_wrapper = [callback]() {
-	  callback.NonBlockingCall();
-	};
-
-	DWORD listener = 0;
-
-	if (event_name == "end") {
-		listener = this->grass_audio_->add_listener(GrassAudioEvent::END, callback_wrapper, remove_on_trigger);
-	}
-	else if (event_name == "positionReached") {
-		const auto position = info[3].As<Napi::Number>().DoubleValue();
-		listener = this->grass_audio_->add_listener(GrassAudioEvent::POSITION_REACHED,
-				callback_wrapper,
-				remove_on_trigger,
-				position);
-	}
-
-	return Napi::Number::New(env, listener);
-}
-
-// experimental
-void GrassAudioWrapper::remove_listener(const Napi::CallbackInfo& info) {
-	const auto listener = info[0].As<Napi::Number>().Uint32Value();
-	this->grass_audio_->remove_listener(listener);
 }
 
 void GrassAudioWrapper::set_files(const Napi::CallbackInfo& info) {
