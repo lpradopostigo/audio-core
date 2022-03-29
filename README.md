@@ -19,10 +19,10 @@ Import the module
 import GrassAudio from "grass-audio";
 ```
 
-Now you can instantiate the class with, specifying a file path array
+Now you can instantiate the class with
 
 ```js
-const audioPlayer = new GrassAudio(["path1", "path2", "..."]);
+const audioPlayer = new GrassAudio();
 ```
 
 ## Api reference

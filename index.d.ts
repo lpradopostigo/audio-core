@@ -1,41 +1,32 @@
 declare module "grass-audio" {
-  class GrassAudio {
-    constructor();
+    class GrassAudio {
+        constructor(sampleRate: 44100 | 48000);
 
-    play(): void;
+        play(): void;
 
-    pause(): void;
+        pause(): void;
 
-    stop(): void;
+        stop(): void;
 
-    skipToIndex(index: number): void;
+        skipToIndex(index: number): void;
 
-    previous(): void;
+        previous(): void;
 
-    next(): void;
+        next(): void;
 
-    seek(position: number): void;
+        seek(position: number): void;
 
-    setFiles(files: string[]);
+        setFiles(files: string[]);
 
-    setVolume(volume: number): void;
+        setVolume(volume: number): void;
 
-    addListener(
-      event: "end" | "positionReached",
-      callback: () => void,
-      removeOnTrigger?: boolean,
-      ...args: any
-    ): number;
+        getState(): {
+            playbackState: "playing" | "stopped" | "paused";
+            fileDuration: number;
+            filePosition: number;
+            fileIndex: number;
+        };
+    }
 
-    removeListener(listener: number);
-
-    getState(): {
-      playbackState: "playing" | "stopped" | "paused";
-      fileDuration: number;
-      filePosition: number;
-      fileIndex: number;
-    };
-  }
-
-  export = GrassAudio;
+    export = GrassAudio;
 }
