@@ -1,5 +1,5 @@
 #include "util.hpp"
-#include <stringapiset.h>
+#include <windows.h>
 
 namespace util {
 std::wstring utf8_to_wstring(const std::string& str) {
