@@ -1,6 +1,6 @@
 declare module "grass-audio" {
     class GrassAudio {
-        constructor(sampleRate: 44100 | 48000);
+        constructor(sampleRate?: 44100 | 48000);
 
         play(): void;
 

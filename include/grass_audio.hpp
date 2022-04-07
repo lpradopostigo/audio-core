@@ -65,7 +65,6 @@ private:
 	HSTREAM mixer_stream_ = NO_HANDLER;
 
 	void load_next_file();
-	void flush_mixer() const;
 	int resolve_index(int index);
 	static void log_bass_error(const std::string& message);
 	static void load_bass_plugins();

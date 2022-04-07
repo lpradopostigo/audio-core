@@ -1,5 +1,7 @@
 #include "grass_audio.hpp"
 #include <utility>
+#include "stringapiset.h"
+#include "util.hpp"
 
 std::string GrassAudio::plugin_path_ = ".";
 
@@ -117,10 +119,10 @@ void GrassAudio::load_next_file() {
 	}
 
 	current_stream_ = BASS_StreamCreateFile(false,
-			files_[current_file_index_].c_str(),
+			util::utf8_to_wstring(files_[current_file_index_]).c_str(),
 			0,
 			0,
-			BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT);
+			BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT | BASS_UNICODE);
 
 	log_bass_error("failed to create stream");
 
@@ -131,14 +133,6 @@ void GrassAudio::load_next_file() {
 
 	BASS_ChannelSetPosition(mixer_stream_, 0, BASS_POS_BYTE);
 	log_bass_error("failed to reset mixer position");
-}
-
-void GrassAudio::flush_mixer() const {
-	if (current_stream_ != NO_HANDLER) {
-		const auto channel_position{BASS_Mixer_ChannelGetPosition(current_stream_, BASS_POS_BYTE)};
-		BASS_Mixer_ChannelSetPosition(current_stream_, channel_position, BASS_POS_BYTE);
-	}
-	BASS_ChannelSetPosition(mixer_stream_, 0, BASS_POS_BYTE);
 }
 
 int GrassAudio::resolve_index(int index) {

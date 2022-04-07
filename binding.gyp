@@ -6,6 +6,7 @@
         "src/binding.cpp",
         "src/grass_audio_wrapper.cpp",
         "src/grass_audio.cpp",
+        "src/util.cpp",
         "lib/log/src/log.c"
       ],
       "conditions": [
