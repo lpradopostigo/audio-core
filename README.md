@@ -13,7 +13,7 @@ npm install grass-audio
 
 ## Usage
 ```js
-import GrassAudio from "grass-audio";
+const GrassAudio = require("grass-audio");
 const audioPlayer = new GrassAudio();
 audioPlayer.setFiles([path1, path2, ...])
 audioPlayer.play()
