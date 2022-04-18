@@ -1,9 +1,7 @@
 #include "grass_audio.hpp"
 #include <utility>
 #include <climits>
-#ifdef _WIN32
 #include "util.hpp"
-#endif
 
 std::string GrassAudio::plugin_path_ = ".";
 
