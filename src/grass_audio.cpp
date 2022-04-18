@@ -50,6 +50,8 @@ void GrassAudio::stop() {
 }
 
 void GrassAudio::skip_to_index(int index) {
+	if (files_.empty()) return;
+
 	remove_sync();
 	const auto playback_state =
 			static_cast<const GrassAudioPlaybackState>(BASS_ChannelIsActive(mixer_stream_));
