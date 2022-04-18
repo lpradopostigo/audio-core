@@ -42,14 +42,6 @@ int main() {
 	grass.play();
 	grass.seek(1);
 
-	Sleep(2000);
-	cout << grass.get_state().file_position << endl;
-
-	Sleep(1000);
-
-	Sleep(1000);
-
-	Sleep(1000);
 	system("Pause");
 
 }

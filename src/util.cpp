@@ -1,7 +1,9 @@
 #include "util.hpp"
+#ifdef WIN32
 #include <windows.h>
-
+#endif
 namespace util {
+#ifdef WIN32
 std::wstring utf8_to_wstring(const std::string& str) {
 	const auto str_length = static_cast<int>(str.length());
 	const int wstr_length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str_length, nullptr, 0);
@@ -9,4 +11,5 @@ std::wstring utf8_to_wstring(const std::string& str) {
 	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str_length, &wstr[0], wstr_length);
 	return wstr;
 }
+#endif
 }

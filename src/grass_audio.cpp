@@ -1,7 +1,9 @@
 #include "grass_audio.hpp"
 #include <utility>
-#include "stringapiset.h"
+#include <climits>
+#ifdef _WIN32
 #include "util.hpp"
+#endif
 
 std::string GrassAudio::plugin_path_ = ".";
 
@@ -118,12 +120,19 @@ void GrassAudio::load_next_file() {
 		return;
 	}
 
+#ifdef _WIN32
 	current_stream_ = BASS_StreamCreateFile(false,
 			util::utf8_to_wstring(files_[current_file_index_]).c_str(),
 			0,
 			0,
 			BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT | BASS_UNICODE);
-
+#else
+	current_stream_ = BASS_StreamCreateFile(false,
+			files_[current_file_index_].c_str(),
+			0,
+			0,
+			BASS_STREAM_DECODE | BASS_SAMPLE_FLOAT | BASS_UNICODE);
+#endif
 	log_bass_error("failed to create stream");
 
 	BASS_Mixer_StreamAddChannel(mixer_stream_,
