@@ -1,6 +1,6 @@
 {
   "name": "grass-audio",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "audio player class with gapless playback it uses the bass library as engine",
   "main": "index.js",
   "types": "index.d.ts",
