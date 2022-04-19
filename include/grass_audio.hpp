@@ -41,7 +41,7 @@ public:
 	explicit GrassAudio(SampleRate sample_rate = SampleRate::F44_1);
 	~GrassAudio();
 	void set_files(std::vector<std::string> files);
-	void play() const;
+	void play();
 	void pause() const;
 	void stop();
 	void skip_to_index(int index);
@@ -70,4 +70,5 @@ private:
 	static void load_bass_plugins();
 	void set_sync();
 	void remove_sync();
+	void remove_current_stream();
 };
