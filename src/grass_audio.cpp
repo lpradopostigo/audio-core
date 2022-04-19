@@ -110,8 +110,11 @@ void GrassAudio::set_files(std::vector<std::string> files) {
 	files_ = std::move(files);
 	current_file_index_ = 0;
 	current_stream_ = NO_HANDLER;
-	load_next_file();
-	set_sync();
+
+	if (!files_.empty()) {
+		load_next_file();
+		set_sync();
+	}
 }
 
 void GrassAudio::load_next_file() {
