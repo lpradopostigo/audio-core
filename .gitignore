@@ -1,10 +1,5 @@
-node_modules
-cmake-build-debug*/
-*.wav
-*.flac
+cmake-build*/
 *.log
-build
-dist
 .idea
 *.tgz
-grass-audio-*/
+*.zip
