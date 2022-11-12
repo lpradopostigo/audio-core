@@ -16,53 +16,42 @@ const int playlist_size = 3;
 
 TEST(basic, {
 	ASSERT("init", GA_Init(44100, NULL) == GA_OK);
-
-	struct GA_Player* player = GA_CreatePlayer(44100);
-	ASSERT("create player", player != NULL);
-
-	ASSERT("free", GA_DestroyPlayer(player) == GA_OK);
-
 	ASSERT("terminate", GA_Terminate() == GA_OK);
-
 })
 
 TEST(basic_playback, {
 	ASSERT("init", GA_Init(44100, NULL) == GA_OK);
 
-	struct GA_Player* player = GA_CreatePlayer(44100);
-	ASSERT("create player", player != NULL);
+	GA_SetPlaylist(playlist, playlist_size);
+	ASSERT("set playlist", GA_GetPlaylistSize() == playlist_size);
 
-	GA_SetPlaylist(player, playlist, playlist_size);
-	ASSERT("set playlist", player->playlist != NULL);
-
-	GA_Play(player);
-	ASSERT("play", player->current_stream != GA_NO_HANDLER && GA_GetPlaybackState(player) == GA_PLAYBACK_STATE_PLAYING);
+	GA_Play();
+	ASSERT("play", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PLAYING);
 
 	INFO("playing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_Pause(player);
-	ASSERT("pause", GA_GetPlaybackState(player) == GA_PLAYBACK_STATE_PAUSED);
+	GA_Pause();
+	ASSERT("pause", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PAUSED);
 	INFO("pausing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_SkipToTrack(player, 1);
-	ASSERT("skip to track 1", GA_GetCurrentTrackIndex(player) == 1);
+	GA_SkipToTrack(1);
+	ASSERT("skip to track 1", GA_GetCurrentTrackIndex() == 1);
 	INFO("playing audio after skip for 5 seconds");
 	Sleep(5000);
 
-	GA_Pause(player);
-	ASSERT("pause", GA_GetPlaybackState(player) == GA_PLAYBACK_STATE_PAUSED);
+	GA_Pause();
+	ASSERT("pause", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PAUSED);
 	INFO("pausing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_Seek(player, 155);
-	ASSERT("seek", GA_GetTrackPosition(player) == 155);
-	GA_Play(player);
-	INFO("playing audio after seek for 20 seconds, no gaps should be heard");
-	Sleep(20000);
+	GA_Seek(155);
+	ASSERT("seek", GA_GetTrackPosition() == 155);
+	GA_Play();
+	INFO("playing audio after seek for 15 seconds, no gaps should be heard");
+	Sleep(15000);
 
-	ASSERT("free", GA_DestroyPlayer(player) == GA_OK);
 	ASSERT("terminate", GA_Terminate() == GA_OK);
 })
 
@@ -74,7 +63,6 @@ static char* all_tests() {
 }
 
 int main() {
-	printf("%s", PROJECT_TEST_DIR);
 	char* result = all_tests();
 	if (result != 0) {
 		printf("[ERROR]: %s\n", result);
