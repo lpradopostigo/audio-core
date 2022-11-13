@@ -55,14 +55,14 @@ TEST(basic_playback, {
 	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
 })
 
-static char* all_tests() {
+static char* all_tests(void) {
 	RUN_TEST(basic);
 	RUN_TEST(basic_playback);
 
 	return 0;
 }
 
-int main() {
+int main(void) {
 	char* result = all_tests();
 	if (result != 0) {
 		printf("[ERROR]: %s\n", result);

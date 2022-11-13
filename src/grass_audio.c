@@ -9,16 +9,16 @@ struct GA_Player {
   uint32_t mixer_stream;
   uint32_t current_stream;
   uint32_t track_end_sync_handler;
-  int current_track_index;
+  uint16_t current_track_index;
   wchar_t** playlist;
-  int playlist_size;
+  uint16_t playlist_size;
 };
 
-void GA_SetTrackEndSync();
-void GA_HandleTrackEndSync();
-void GA_LoadNextTrack();
-void GA_RemoveTrackEndSync();
-void GA_RemoveCurrentStream();
+void GA_SetTrackEndSync(void);
+void GA_HandleTrackEndSync(void);
+void GA_LoadNextTrack(void);
+void GA_RemoveTrackEndSync(void);
+void GA_RemoveCurrentStream(void);
 
 static uint32_t ga_plugins[] = {GA_NO_HANDLER};
 static struct GA_Player* ga_player = NULL;
@@ -60,7 +60,7 @@ enum GA_Result GA_Init(uint32_t sample_rate, const char* plugin_path) {
 	return GA_RESULT_OK;
 }
 
-enum GA_Result GA_Terminate() {
+enum GA_Result GA_Terminate(void) {
 	CHECK_GA_PLAYER_INITIALIZED(GA_RESULT_ERROR);
 
 	// free bass
@@ -71,7 +71,7 @@ enum GA_Result GA_Terminate() {
 
 
 	// free ga_player
-	for (int i = 0; i < ga_player->playlist_size; i++) {
+	for (uint16_t i = 0; i < ga_player->playlist_size; i++) {
 		free((void*)ga_player->playlist[i]);
 	}
 	free((void*)ga_player->playlist);
@@ -82,7 +82,7 @@ enum GA_Result GA_Terminate() {
 
 }
 
-void GA_Play() {
+void GA_Play(void) {
 	CHECK_GA_PLAYER_INITIALIZED();
 	if (ga_player->playlist == NULL) return;
 
@@ -93,13 +93,13 @@ void GA_Play() {
 	BASS_ChannelPlay(ga_player->mixer_stream, FALSE);
 }
 
-void GA_Pause() {
+void GA_Pause(void) {
 	CHECK_GA_PLAYER_INITIALIZED();
 	if (ga_player->current_stream == GA_NO_HANDLER || ga_player->playlist == NULL) return;
 	BASS_ChannelPause(ga_player->mixer_stream);
 }
 
-void GA_Stop() {
+void GA_Stop(void) {
 	CHECK_GA_PLAYER_INITIALIZED();
 	GA_RemoveTrackEndSync();
 	GA_RemoveCurrentStream();
@@ -119,7 +119,7 @@ void GA_Seek(double position) {
 			BASS_POS_BYTE | BASS_MIXER_CHAN_NORAMPIN | BASS_POS_MIXER_RESET);
 }
 
-void GA_SkipToTrack(int index) {
+void GA_SkipToTrack(int32_t index) {
 	CHECK_GA_PLAYER_INITIALIZED();
 	if (ga_player->playlist == NULL) return;
 
@@ -131,17 +131,17 @@ void GA_SkipToTrack(int index) {
 	BASS_ChannelPlay(ga_player->mixer_stream, FALSE);
 }
 
-void GA_Next() {
+void GA_Next(void) {
 	CHECK_GA_PLAYER_INITIALIZED();
 	GA_SkipToTrack(ga_player->current_track_index + 1);
 }
 
-void GA_Previous() {
+void GA_Previous(void) {
 	CHECK_GA_PLAYER_INITIALIZED();
 	GA_SkipToTrack(ga_player->current_track_index - 1);
 }
 
-void GA_SetPlaylist(char const* const* playlist, int playlist_size) {
+void GA_SetPlaylist(char const* const* playlist, uint16_t playlist_size) {
 	CHECK_GA_PLAYER_INITIALIZED();
 
 	GA_RemoveTrackEndSync();
@@ -149,7 +149,7 @@ void GA_SetPlaylist(char const* const* playlist, int playlist_size) {
 
 	wchar_t** new_playlist = (wchar_t**)malloc(sizeof(wchar_t*) * playlist_size);
 
-	for (int i = 0; i < playlist_size; i++) {
+	for (uint16_t i = 0; i < playlist_size; i++) {
 		new_playlist[i] = GA_Utf8ToWstring(playlist[i]);
 	}
 
@@ -167,24 +167,24 @@ void GA_SetVolume(float volume) {
 	BASS_ChannelSetAttribute(ga_player->mixer_stream, BASS_ATTRIB_VOL, volume);
 }
 
-float GA_GetVolume() {
+float GA_GetVolume(void) {
 	CHECK_GA_PLAYER_INITIALIZED(0);
 	float volume;
 	BASS_ChannelGetAttribute(ga_player->mixer_stream, BASS_ATTRIB_VOL, &volume);
 	return BASS_ErrorGetCode() ? 0 : volume;
 }
 
-int GA_GetCurrentTrackIndex() {
+uint16_t GA_GetCurrentTrackIndex(void) {
 	CHECK_GA_PLAYER_INITIALIZED(-1);
 	return ga_player->current_track_index;
 }
 
-int GA_GetPlaylistSize() {
+uint16_t GA_GetPlaylistSize(void) {
 	CHECK_GA_PLAYER_INITIALIZED(-1);
 	return ga_player->playlist_size;
 }
 
-enum GA_PlaybackState GA_GetPlaybackState() {
+enum GA_PlaybackState GA_GetPlaybackState(void) {
 	CHECK_GA_PLAYER_INITIALIZED(GA_PLAYBACK_STATE_STOPPED);
 	uint32_t playback_state = BASS_ChannelIsActive(ga_player->mixer_stream);
 
@@ -196,14 +196,14 @@ enum GA_PlaybackState GA_GetPlaybackState() {
 
 }
 
-double GA_GetTrackPosition() {
+double GA_GetTrackPosition(void) {
 	CHECK_GA_PLAYER_INITIALIZED(0);
 	if (ga_player->current_stream == GA_NO_HANDLER) return 0;
 	QWORD position = BASS_Mixer_ChannelGetPosition(ga_player->current_stream, BASS_POS_BYTE);
 	return BASS_ChannelBytes2Seconds(ga_player->current_stream, position);
 }
 
-double GA_GetTrackLength() {
+double GA_GetTrackLength(void) {
 	CHECK_GA_PLAYER_INITIALIZED(0);
 	if (ga_player->current_stream == GA_NO_HANDLER) return 0;
 
@@ -211,20 +211,20 @@ double GA_GetTrackLength() {
 	return BASS_ChannelBytes2Seconds(ga_player->current_stream, length);
 }
 
-void GA_RemoveTrackEndSync() {
+void GA_RemoveTrackEndSync(void) {
 	if (ga_player->track_end_sync_handler == GA_NO_HANDLER) return;
 	BASS_ChannelRemoveSync(ga_player->mixer_stream, ga_player->track_end_sync_handler);
 	ga_player->track_end_sync_handler = GA_NO_HANDLER;
 }
 
-void GA_RemoveCurrentStream() {
+void GA_RemoveCurrentStream(void) {
 	if (ga_player->current_stream == GA_NO_HANDLER) return;
 	BASS_Mixer_ChannelRemove(ga_player->current_stream);
 	ga_player->current_stream = GA_NO_HANDLER;
 }
 
-void GA_LoadNextTrack() {
-	const int remaining_tracks_count = ga_player->playlist_size - ga_player->current_track_index;
+void GA_LoadNextTrack(void) {
+	const int16_t remaining_tracks_count = (int16_t)(ga_player->playlist_size - ga_player->current_track_index);
 	if (remaining_tracks_count == 0) {
 		return;
 	}
@@ -241,17 +241,17 @@ void GA_LoadNextTrack() {
 	BASS_ChannelSetPosition(ga_player->mixer_stream, 0, BASS_POS_BYTE);
 }
 
-void GA_HandleTrackEndSync() {
+void GA_HandleTrackEndSync(void) {
 	ga_player->current_track_index++;
 	GA_LoadNextTrack();
 }
 
-void GA_SetTrackEndSync() {
+void GA_SetTrackEndSync(void) {
 	if (ga_player->track_end_sync_handler != GA_NO_HANDLER) return;
 
 	ga_player->track_end_sync_handler = BASS_ChannelSetSync(ga_player->mixer_stream,
 			BASS_SYNC_END | BASS_SYNC_MIXTIME | BASS_SYNC_THREAD,
 			0,
-			&GA_HandleTrackEndSync,
+			(void (*)(HSYNC, DWORD, DWORD, void*))&GA_HandleTrackEndSync,
 			NULL);
 }

@@ -1,10 +1,11 @@
 #pragma once
 #include <wchar.h>
 #include <stdio.h>
+#include "stdint.h"
 
 #define WARN_IF(condition, message) do { if (condition) { printf("WARN: %s\n",message); } } while (0)
 
 wchar_t* GA_Utf8ToWstring(const char* utf8);
-int GA_ResolveIndex(int index, int size);
+uint16_t GA_ResolveIndex(int32_t index, uint16_t size);
 const char* GA_Concat(const char* str1, const char* str2);
 

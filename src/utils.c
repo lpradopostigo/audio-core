@@ -3,18 +3,18 @@
 
 wchar_t* GA_Utf8ToWstring(const char* utf8) {
 	const size_t utf8_length = strlen(utf8);
-	const size_t wstr_length = MultiByteToWideChar(CP_UTF8, 0, utf8, utf8_length, NULL, 0);
+	const size_t wstr_length = MultiByteToWideChar(CP_UTF8, 0, utf8, (int)utf8_length, NULL, 0);
 
 	wchar_t* wstr = (wchar_t*)malloc(sizeof(wchar_t) * (wstr_length + 1));
 
-	MultiByteToWideChar(CP_UTF8, 0, utf8, utf8_length, wstr, wstr_length);
+	MultiByteToWideChar(CP_UTF8, 0, utf8, (int)utf8_length, wstr, (int)wstr_length);
 	wstr[wstr_length] = L'\0';
 
 	return wstr;
 
 }
 
-int GA_ResolveIndex(int index, int size) {
+uint16_t GA_ResolveIndex(int32_t index, uint16_t size) {
 	if (index < 0) {
 		return size - 1;
 	}
