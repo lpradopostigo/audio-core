@@ -7,13 +7,13 @@ set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
 if (MSVC)
     add_compile_options(/W4 /WX)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 else ()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif ()
 
 add_subdirectory(lib)
 add_subdirectory(test)
-
 add_library(grass_audio SHARED src/grass_audio.c src/utils.c)
 target_include_directories(grass_audio PUBLIC "${CMAKE_SOURCE_DIR}/include")
 target_link_libraries(grass_audio

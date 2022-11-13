@@ -4,6 +4,7 @@
 #include "grass_audio.h"
 
 #define GA_NO_HANDLER 0
+#define GA_NO_ARG
 
 struct GA_Player {
   uint32_t mixer_stream;
@@ -83,7 +84,7 @@ enum GA_Result GA_Terminate(void) {
 }
 
 void GA_Play(void) {
-	CHECK_GA_PLAYER_INITIALIZED();
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 	if (ga_player->playlist == NULL) return;
 
 	if (ga_player->current_stream == GA_NO_HANDLER) {
@@ -94,13 +95,13 @@ void GA_Play(void) {
 }
 
 void GA_Pause(void) {
-	CHECK_GA_PLAYER_INITIALIZED();
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 	if (ga_player->current_stream == GA_NO_HANDLER || ga_player->playlist == NULL) return;
 	BASS_ChannelPause(ga_player->mixer_stream);
 }
 
 void GA_Stop(void) {
-	CHECK_GA_PLAYER_INITIALIZED();
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 	GA_RemoveTrackEndSync();
 	GA_RemoveCurrentStream();
 	ga_player->current_track_index = 0;
@@ -111,7 +112,7 @@ void GA_Stop(void) {
 }
 
 void GA_Seek(double position) {
-	CHECK_GA_PLAYER_INITIALIZED();
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 	if (ga_player->current_stream == GA_NO_HANDLER || ga_player->playlist == NULL) return;
 
 	BASS_Mixer_ChannelSetPosition(ga_player->current_stream,
@@ -119,8 +120,8 @@ void GA_Seek(double position) {
 			BASS_POS_BYTE | BASS_MIXER_CHAN_NORAMPIN | BASS_POS_MIXER_RESET);
 }
 
-void GA_SkipToTrack(int32_t index) {
-	CHECK_GA_PLAYER_INITIALIZED();
+void GA_SkipToTrack(int16_t index) {
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 	if (ga_player->playlist == NULL) return;
 
 	GA_RemoveTrackEndSync();
@@ -132,17 +133,17 @@ void GA_SkipToTrack(int32_t index) {
 }
 
 void GA_Next(void) {
-	CHECK_GA_PLAYER_INITIALIZED();
-	GA_SkipToTrack(ga_player->current_track_index + 1);
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
+	GA_SkipToTrack((int16_t)(ga_player->current_track_index + 1));
 }
 
 void GA_Previous(void) {
-	CHECK_GA_PLAYER_INITIALIZED();
-	GA_SkipToTrack(ga_player->current_track_index - 1);
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
+	GA_SkipToTrack((int16_t)(ga_player->current_track_index - 1));
 }
 
 void GA_SetPlaylist(char const* const* playlist, uint16_t playlist_size) {
-	CHECK_GA_PLAYER_INITIALIZED();
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 
 	GA_RemoveTrackEndSync();
 	GA_RemoveCurrentStream();
@@ -163,7 +164,7 @@ void GA_SetPlaylist(char const* const* playlist, uint16_t playlist_size) {
 }
 
 void GA_SetVolume(float volume) {
-	CHECK_GA_PLAYER_INITIALIZED();
+	CHECK_GA_PLAYER_INITIALIZED(GA_NO_ARG);
 	BASS_ChannelSetAttribute(ga_player->mixer_stream, BASS_ATTRIB_VOL, volume);
 }
 
@@ -175,12 +176,12 @@ float GA_GetVolume(void) {
 }
 
 uint16_t GA_GetCurrentTrackIndex(void) {
-	CHECK_GA_PLAYER_INITIALIZED(-1);
+	CHECK_GA_PLAYER_INITIALIZED(0);
 	return ga_player->current_track_index;
 }
 
 uint16_t GA_GetPlaylistSize(void) {
-	CHECK_GA_PLAYER_INITIALIZED(-1);
+	CHECK_GA_PLAYER_INITIALIZED(0);
 	return ga_player->playlist_size;
 }
 

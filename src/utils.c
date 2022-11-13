@@ -14,7 +14,7 @@ wchar_t* GA_Utf8ToWstring(const char* utf8) {
 
 }
 
-uint16_t GA_ResolveIndex(int32_t index, uint16_t size) {
+uint16_t GA_ResolveIndex(int16_t index, uint16_t size) {
 	if (index < 0) {
 		return size - 1;
 	}

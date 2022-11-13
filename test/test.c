@@ -12,7 +12,7 @@ const char* playlist[] = {
 
 };
 
-const int playlist_size = 3;
+const uint16_t playlist_size = 3;
 
 TEST(basic, {
 	ASSERT("init", GA_Init(44100, NULL) == GA_RESULT_OK);

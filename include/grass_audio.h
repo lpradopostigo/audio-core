@@ -23,7 +23,7 @@ void GA_Next(void);
 void GA_SetVolume(float volume);
 float GA_GetVolume(void);
 void GA_Seek(double position);
-void GA_SkipToTrack(int32_t index);
+void GA_SkipToTrack(int16_t index);
 uint16_t GA_GetCurrentTrackIndex(void);
 uint16_t GA_GetPlaylistSize(void);
 enum GA_PlaybackState GA_GetPlaybackState(void);
