@@ -5,6 +5,12 @@ project(grass_audio
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
+if (MSVC)
+    add_compile_options(/W4 /WX)
+else ()
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif ()
+
 add_subdirectory(lib)
 add_subdirectory(test)
 
@@ -14,3 +20,4 @@ target_link_libraries(grass_audio
         PUBLIC bass
         PRIVATE bassmix
         PRIVATE bassflac)
+
