@@ -20,4 +20,6 @@ target_link_libraries(grass_audio
         PUBLIC bass
         PRIVATE bassmix
         PRIVATE bassflac)
-
+add_custom_command(TARGET grass_audio POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:grass_audio> $<TARGET_FILE_DIR:grass_audio>
+        COMMAND_EXPAND_LISTS)
