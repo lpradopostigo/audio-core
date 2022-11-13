@@ -6,27 +6,27 @@
 #define GA_NO_HANDLER 0
 
 struct GA_Player {
-  HSTREAM mixer_stream;
-  HSTREAM current_stream;
-  HSYNC track_end_sync_handler;
+  uint32_t mixer_stream;
+  uint32_t current_stream;
+  uint32_t track_end_sync_handler;
   int current_track_index;
   wchar_t** playlist;
   int playlist_size;
 };
 
 void GA_SetTrackEndSync();
-void GA_HandleTrackEndSync(HSYNC handle, DWORD channel, DWORD data, void* user);
+void GA_HandleTrackEndSync();
 void GA_LoadNextTrack();
 void GA_RemoveTrackEndSync();
 void GA_RemoveCurrentStream();
 
-static HPLUGIN ga_plugins[] = {GA_NO_HANDLER};
+static uint32_t ga_plugins[] = {GA_NO_HANDLER};
 static struct GA_Player* ga_player = NULL;
 
 #define CHECK_GA_PLAYER_INITIALIZED(return_value) do { if (ga_player == NULL) { printf("GA: grass audio is not initialized"); return return_value; } } while (0)
 
-int GA_Init(DWORD sample_rate, const char* plugin_path) {
-	if (ga_player != NULL) return GA_ERROR;
+enum GA_Result GA_Init(uint32_t sample_rate, const char* plugin_path) {
+	if (ga_player != NULL) return GA_RESULT_ERROR;
 
 	// init bass
 	const char* resolved_plugin_path = plugin_path == NULL ? "." : plugin_path;
@@ -37,7 +37,7 @@ int GA_Init(DWORD sample_rate, const char* plugin_path) {
 		free((void*)bassflac_path);
 	}
 
-	if (!BASS_Init(-1, sample_rate, 0, NULL, NULL)) return GA_ERROR;
+	if (!BASS_Init(-1, sample_rate, 0, NULL, NULL)) return GA_RESULT_ERROR;
 	WARN_IF(!BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 2000), "Failed to set global volume");
 
 	// create player
@@ -48,7 +48,7 @@ int GA_Init(DWORD sample_rate, const char* plugin_path) {
 	if (BASS_ErrorGetCode()) {
 		free(ga_player);
 		ga_player = NULL;
-		return GA_ERROR;
+		return GA_RESULT_ERROR;
 	}
 
 	ga_player->current_stream = GA_NO_HANDLER;
@@ -57,17 +57,17 @@ int GA_Init(DWORD sample_rate, const char* plugin_path) {
 	ga_player->playlist = NULL;
 	ga_player->playlist_size = 0;
 
-	return GA_OK;
+	return GA_RESULT_OK;
 }
 
-int GA_Terminate() {
-	CHECK_GA_PLAYER_INITIALIZED(GA_ERROR);
+enum GA_Result GA_Terminate() {
+	CHECK_GA_PLAYER_INITIALIZED(GA_RESULT_ERROR);
 
 	// free bass
-	if (!BASS_PluginFree(ga_plugins[0])) return GA_ERROR;
+	if (!BASS_PluginFree(ga_plugins[0])) return GA_RESULT_ERROR;
 	ga_plugins[0] = GA_NO_HANDLER;
 
-	if (!BASS_Free()) return GA_ERROR;
+	if (!BASS_Free()) return GA_RESULT_ERROR;
 
 
 	// free ga_player
@@ -78,7 +78,7 @@ int GA_Terminate() {
 	free(ga_player);
 	ga_player = NULL;
 
-	return GA_OK;
+	return GA_RESULT_OK;
 
 }
 
@@ -184,9 +184,16 @@ int GA_GetPlaylistSize() {
 	return ga_player->playlist_size;
 }
 
-DWORD GA_GetPlaybackState() {
+enum GA_PlaybackState GA_GetPlaybackState() {
 	CHECK_GA_PLAYER_INITIALIZED(GA_PLAYBACK_STATE_STOPPED);
-	return BASS_ChannelIsActive(ga_player->mixer_stream);
+	uint32_t playback_state = BASS_ChannelIsActive(ga_player->mixer_stream);
+
+	switch (playback_state) {
+	case BASS_ACTIVE_PLAYING: return GA_PLAYBACK_STATE_PLAYING;
+	case BASS_ACTIVE_PAUSED: return GA_PLAYBACK_STATE_PAUSED;
+	default: return GA_PLAYBACK_STATE_STOPPED;
+	}
+
 }
 
 double GA_GetTrackPosition() {
@@ -234,7 +241,7 @@ void GA_LoadNextTrack() {
 	BASS_ChannelSetPosition(ga_player->mixer_stream, 0, BASS_POS_BYTE);
 }
 
-void GA_HandleTrackEndSync(HSYNC handle, DWORD channel, DWORD data, void* user) {
+void GA_HandleTrackEndSync() {
 	ga_player->current_track_index++;
 	GA_LoadNextTrack();
 }

@@ -15,12 +15,12 @@ const char* playlist[] = {
 const int playlist_size = 3;
 
 TEST(basic, {
-	ASSERT("init", GA_Init(44100, NULL) == GA_OK);
-	ASSERT("terminate", GA_Terminate() == GA_OK);
+	ASSERT("init", GA_Init(44100, NULL) == GA_RESULT_OK);
+	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
 })
 
 TEST(basic_playback, {
-	ASSERT("init", GA_Init(44100, NULL) == GA_OK);
+	ASSERT("init", GA_Init(44100, NULL) == GA_RESULT_OK);
 
 	GA_SetPlaylist(playlist, playlist_size);
 	ASSERT("set playlist", GA_GetPlaylistSize() == playlist_size);
@@ -52,7 +52,7 @@ TEST(basic_playback, {
 	INFO("playing audio after seek for 15 seconds, no gaps should be heard");
 	Sleep(15000);
 
-	ASSERT("terminate", GA_Terminate() == GA_OK);
+	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
 })
 
 static char* all_tests() {
