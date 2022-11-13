@@ -4,6 +4,7 @@ project(grass_audio
         LANGUAGES C)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED TRUE)
+set(DIST_DIR ${CMAKE_SOURCE_DIR}/dist)
 
 if (MSVC)
     add_compile_options(/W4 /WX)
@@ -23,3 +24,8 @@ target_link_libraries(grass_audio
 add_custom_command(TARGET grass_audio POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:grass_audio> $<TARGET_FILE_DIR:grass_audio>
         COMMAND_EXPAND_LISTS)
+
+install(TARGETS grass_audio
+        DESTINATION ${DIST_DIR})
+
+install(FILES $<TARGET_RUNTIME_DLLS:grass_audio> include/grass_audio.h DESTINATION ${DIST_DIR})
