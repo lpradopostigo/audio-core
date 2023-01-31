@@ -39,7 +39,6 @@ enum GA_Result GA_Init(uint32_t sample_rate, const char* plugin_path) {
 	}
 
 	if (!BASS_Init(-1, sample_rate, 0, NULL, NULL)) return GA_RESULT_ERROR;
-	WARN_IF(!BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 2000), "Failed to set global volume");
 
 	// create player
 	ga_player = (struct GA_Player*)malloc(sizeof(struct GA_Player));
