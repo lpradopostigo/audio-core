@@ -1,6 +1,6 @@
 [package]
 name = "grass-audio-rs"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 license = "MIT"
 description = "Rust bindings for the grass-audio library"
