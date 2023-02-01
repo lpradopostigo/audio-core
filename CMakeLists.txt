@@ -28,4 +28,8 @@ add_custom_command(TARGET grass_audio POST_BUILD
 install(TARGETS grass_audio
         DESTINATION ${DIST_DIR})
 
+install(TARGETS grass_audio
+        DESTINATION ${DIST_DIR}/../bindings/rust/grass-audio)
+
 install(FILES $<TARGET_RUNTIME_DLLS:grass_audio> include/grass_audio.h DESTINATION ${DIST_DIR})
+install(FILES $<TARGET_RUNTIME_DLLS:grass_audio> include/grass_audio.h DESTINATION ${DIST_DIR}/../bindings/rust/grass-audio)

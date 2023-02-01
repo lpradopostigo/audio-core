@@ -3,3 +3,7 @@ cmake-build*/
 .idea
 *.tgz
 *.zip
+
+# Rust
+bindings/rust/target
+bindings/rust/Cargo.lock
