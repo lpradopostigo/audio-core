@@ -24,7 +24,7 @@ pub enum PlaybackState {
 pub fn init(sample_rate: SampleRate) -> Result<(), &'static str> {
     let result;
     unsafe {
-        result = GA_Init(sample_rate as u32, null());
+        result = GA_Init(sample_rate as u32);
     }
 
     if result == GA_RESULT_OK {

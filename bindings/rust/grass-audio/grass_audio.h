@@ -12,7 +12,7 @@ enum GA_PlaybackState {
   GA_PLAYBACK_STATE_PAUSED = 2
 };
 
-enum GA_Result GA_Init(uint32_t sample_rate, const char* plugin_path);
+enum GA_Result GA_Init(uint32_t sample_rate);
 enum GA_Result GA_Terminate(void);
 void GA_SetPlaylist(char const* const* playlist, uint16_t playlist_size);
 void GA_Play(void);
