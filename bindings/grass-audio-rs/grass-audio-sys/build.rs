@@ -6,7 +6,9 @@ use std::path::PathBuf;
 use bindgen::CargoCallbacks;
 
 fn main() {
-    let grass_audio_dist_path = PathBuf::from("grass-audio")
+    println!("cargo:rerun-if-changed=dist/grass_audio.h");
+
+    let grass_audio_dist_path = PathBuf::from("dist")
         .canonicalize()
         .expect("cannot canonicalize path");
 

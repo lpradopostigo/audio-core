@@ -1,15 +1,12 @@
 [package]
-name = "grass-audio-rs"
-version = "0.1.2"
+name = "grass-audio-sys"
+version = "0.1.0"
 edition = "2021"
-build = "build.rs"
 license = "MIT"
+links = "grass-audio"
 description = "Rust bindings for the grass-audio library"
 repository = "https://github.com/lpradopostigo/grass-audio"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-
 [build-dependencies]
 bindgen = "0.63.0"

@@ -29,7 +29,7 @@ install(TARGETS grass_audio
         DESTINATION ${DIST_DIR})
 
 install(TARGETS grass_audio
-        DESTINATION ${DIST_DIR}/../bindings/rust/grass-audio)
+        DESTINATION ${DIST_DIR}/../bindings/grass-audio-rs/grass-audio-sys/dist)
 
 install(FILES $<TARGET_RUNTIME_DLLS:grass_audio> include/grass_audio.h DESTINATION ${DIST_DIR})
-install(FILES $<TARGET_RUNTIME_DLLS:grass_audio> include/grass_audio.h DESTINATION ${DIST_DIR}/../bindings/rust/grass-audio)
+install(FILES $<TARGET_RUNTIME_DLLS:grass_audio> include/grass_audio.h DESTINATION ${DIST_DIR}/../bindings/grass-audio-rs/grass-audio-sys/dist)
