@@ -9,18 +9,17 @@ const char* playlist[] = {
 		CONCAT(PROJECT_TEST_SAMPLE_FILES_DIR, "/01_Ghosts_I.flac"),
 		CONCAT(PROJECT_TEST_SAMPLE_FILES_DIR, "/24_Ghosts_III.flac"),
 		CONCAT(PROJECT_TEST_SAMPLE_FILES_DIR, "/25_Ghosts_III.flac")
-
 };
 
 const uint16_t playlist_size = 3;
 
 TEST(basic, {
-	ASSERT("init", GA_Init(44100, NULL) == GA_RESULT_OK);
+	ASSERT("init", GA_Init(44100) == GA_RESULT_OK);
 	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
 })
 
 TEST(basic_playback, {
-	ASSERT("init", GA_Init(44100, NULL) == GA_RESULT_OK);
+	ASSERT("init", GA_Init(44100) == GA_RESULT_OK);
 
 	GA_SetPlaylist(playlist, playlist_size);
 	ASSERT("set playlist", GA_GetPlaylistSize() == playlist_size);
@@ -55,10 +54,37 @@ TEST(basic_playback, {
 	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
 })
 
+TEST(playlist_end, {
+	ASSERT("init", GA_Init(44100) == GA_RESULT_OK);
+
+	GA_SetPlaylist(playlist, playlist_size);
+	ASSERT("set playlist", GA_GetPlaylistSize() == playlist_size);
+	ASSERT("current track index", GA_GetCurrentTrackIndex() == 0);
+
+	GA_Play();
+	ASSERT("play", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PLAYING);
+
+	INFO("playing audio for 5 seconds");
+	Sleep(5000);
+
+	GA_SkipToTrack(2);
+	ASSERT("skip to track 2", GA_GetCurrentTrackIndex() == 2);
+	Sleep(5000);
+
+	GA_Seek(110);
+	ASSERT("seek", GA_GetTrackPosition() == 110);
+
+	Sleep(10000);
+	ASSERT("stopped", GA_GetPlaybackState() == GA_PLAYBACK_STATE_STOPPED);
+	ASSERT("current track index", GA_GetCurrentTrackIndex() == 0);
+
+	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
+})
+
 static char* all_tests(void) {
 	RUN_TEST(basic);
 	RUN_TEST(basic_playback);
-
+	//RUN_TEST(playlist_end);
 	return 0;
 }
 

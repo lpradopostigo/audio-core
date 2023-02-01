@@ -26,21 +26,19 @@ static struct GA_Player* ga_player = NULL;
 
 #define CHECK_GA_PLAYER_INITIALIZED(return_value) do { if (ga_player == NULL) { printf("GA: grass audio is not initialized"); return return_value; } } while (0)
 
-enum GA_Result GA_Init(uint32_t sample_rate, const char* plugin_path) {
+enum GA_Result GA_Init(uint32_t sample_rate) {
 	if (ga_player != NULL) return GA_RESULT_ERROR;
 
-	// init bass
-	const char* resolved_plugin_path = plugin_path == NULL ? "." : plugin_path;
-
+	// load plugins
 	if (ga_plugins[0] == GA_NO_HANDLER) {
-		const char* bassflac_path = GA_Concat(resolved_plugin_path, "/bassflac.dll");
+		const char* bassflac_path = "./bassflac.dll";
 		ga_plugins[0] = BASS_PluginLoad(bassflac_path, 0);
-		free((void*)bassflac_path);
 	}
 
+	// init bass
 	if (!BASS_Init(-1, sample_rate, 0, NULL, NULL)) return GA_RESULT_ERROR;
 
-	// create player
+	// init player
 	ga_player = (struct GA_Player*)malloc(sizeof(struct GA_Player));
 
 	ga_player->mixer_stream = BASS_Mixer_StreamCreate(sample_rate, 2, BASS_MIXER_END);
