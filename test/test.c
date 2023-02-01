@@ -72,11 +72,11 @@ TEST(playlist_end, {
 	Sleep(5000);
 
 	GA_Seek(110);
-	ASSERT("seek", GA_GetTrackPosition() == 110);
+	ASSERT("seek to 110", GA_GetTrackPosition() == 110);
 
 	Sleep(10000);
 	ASSERT("stopped", GA_GetPlaybackState() == GA_PLAYBACK_STATE_STOPPED);
-	ASSERT("current track index", GA_GetCurrentTrackIndex() == 0);
+	ASSERT("current track index 0", GA_GetCurrentTrackIndex() == 0);
 
 	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
 })
@@ -84,7 +84,7 @@ TEST(playlist_end, {
 static char* all_tests(void) {
 	RUN_TEST(basic);
 	RUN_TEST(basic_playback);
-	//RUN_TEST(playlist_end);
+	RUN_TEST(playlist_end);
 	return 0;
 }
 
