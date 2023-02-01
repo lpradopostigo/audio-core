@@ -1,6 +1,7 @@
 use grass_audio_sys::*;
 use std::ffi::{CString};
 use std::os::raw::c_char;
+use std::path::Path;
 use std::ptr::null;
 
 pub enum SampleRate {
@@ -17,7 +18,13 @@ pub enum PlaybackState {
     Paused,
 }
 
-pub fn init(sample_rate: SampleRate) -> Result<(), &'static str> {
+#[derive(Debug)]
+pub enum Error {
+    InitFailed,
+    TerminateFailed,
+}
+
+pub fn init(sample_rate: SampleRate) -> Result<(), Error> {
     let result;
     unsafe {
         result = GA_Init(sample_rate as u32);
@@ -26,11 +33,11 @@ pub fn init(sample_rate: SampleRate) -> Result<(), &'static str> {
     if result == GA_RESULT_OK {
         Ok(())
     } else {
-        Err("initialization failed")
+        Err(Error::InitFailed)
     }
 }
 
-pub fn terminate() -> Result<(), &'static str> {
+pub fn terminate() -> Result<(), Error> {
     let result;
     unsafe {
         result = GA_Terminate();
@@ -39,13 +46,15 @@ pub fn terminate() -> Result<(), &'static str> {
     if result == GA_RESULT_OK {
         Ok(())
     } else {
-        Err("termination failed")
+        Err(Error::TerminateFailed)
     }
 }
 
-pub fn set_playlist(playlist: Vec<String>) {
+pub fn set_playlist<T: AsRef<Path>>(playlist: &[T]) {
+    //todo check path encoding possible problems
+
     let cstr_playlist: Vec<_> = playlist.iter()
-        .map(|track| CString::new(track.as_str()).unwrap())
+        .map(|path| CString::new(path.as_ref().as_os_str().to_str().unwrap()).unwrap())
         .collect();
 
     let mut ptr_playlist: Vec<_> = cstr_playlist.iter()
@@ -148,17 +157,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let sample_files_path = concat!(env!("CARGO_MANIFEST_DIR"), "../../../test/sample-files");
+    fn basic_playback() {
+        let sample_files_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "../../../test/sample-files"));
         init(SampleRate::Hz44100).unwrap();
 
-        let track1 = sample_files_path.to_string() + "/01_Ghosts_I.flac";
-        let track2 = sample_files_path.to_string() + "/24_Ghosts_III.flac";
-        let track3 = sample_files_path.to_string() + "/25_Ghosts_III.flac";
+        let track1 = sample_files_path.join("01_Ghosts_I.flac");
+
+        let track2 = sample_files_path.join("24_Ghosts_III.flac");
+        let track3 = sample_files_path.join("25_Ghosts_III.flac");
 
         let tracks = vec![track1, track2, track3];
 
-        set_playlist(tracks);
+        set_playlist(&tracks);
 
 
         play();
