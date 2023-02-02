@@ -212,6 +212,12 @@ uint16_t GA_GetCurrentTrackIndex(void) {
 	return ga_player->current_track_index;
 }
 
+const char* GA_GetCurrentTrackPath(void) {
+	if (ga_player == NULL || ga_player->playlist == NULL) return NULL;
+	const char* path = GA_Utf16ToUtf8(ga_player->playlist[ga_player->current_track_index]);
+	return path;
+}
+
 uint16_t GA_GetPlaylistSize(void) {
 	if (ga_player == NULL) return 0;
 	return ga_player->playlist_size;
