@@ -1,5 +1,5 @@
 use grass_audio_sys::*;
-use std::ffi::{CString};
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::path::Path;
 use std::ptr::null;
@@ -127,6 +127,12 @@ pub fn get_current_track_index() -> u16 {
     unsafe { GA_GetCurrentTrackIndex() }
 }
 
+pub fn get_current_track_path() -> String {
+    let path_ptr = unsafe { GA_GetCurrentTrackPath() };
+    let cstr = unsafe { CStr::from_ptr(path_ptr) };
+    cstr.to_str().unwrap().to_string()
+}
+
 pub fn get_playlist_size() -> u16 {
     unsafe { GA_GetPlaylistSize() }
 }
@@ -158,7 +164,9 @@ mod tests {
 
     #[test]
     fn basic_playback() {
-        let sample_files_path = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "../../../test/sample-files"));
+        let manifest_dir_path = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let sample_files_path = manifest_dir_path.join("../../test/sample-files");
+
         init(SampleRate::Hz44100).unwrap();
 
         let track1 = sample_files_path.join("01_Ghosts_I.flac");
@@ -173,6 +181,8 @@ mod tests {
 
         play();
 
+        assert_eq!(get_current_track_path(), tracks[0].to_str().unwrap());
+
         std::thread::sleep(std::time::Duration::from_secs(5));
 
         pause();
@@ -181,6 +191,9 @@ mod tests {
 
         skip_to_track(1);
         play();
+
+        assert_eq!(get_current_track_path(), tracks[1].to_str().unwrap());
+
 
         std::thread::sleep(std::time::Duration::from_secs(5));
 
