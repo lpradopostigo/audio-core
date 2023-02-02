@@ -95,7 +95,7 @@ void GA_SetPlaylist(char const* const* playlist, uint16_t playlist_size) {
 	wchar_t** new_playlist = (wchar_t**)malloc(sizeof(wchar_t*) * playlist_size);
 
 	for (uint16_t i = 0; i < playlist_size; i++) {
-		new_playlist[i] = GA_Utf8ToWstring(playlist[i]);
+		new_playlist[i] = GA_Utf8ToUtf16(playlist[i]);
 	}
 
 	// replace playlist
