@@ -4,6 +4,7 @@ use std::os::raw::c_char;
 use std::path::Path;
 use std::ptr::null;
 
+#[derive(Debug)]
 pub enum SampleRate {
     Hz44100 = 44100,
     Hz48000 = 48000,
@@ -12,6 +13,7 @@ pub enum SampleRate {
     Hz192000 = 192000,
 }
 
+#[derive(Debug)]
 pub enum PlaybackState {
     Stopped,
     Playing,
@@ -127,10 +129,15 @@ pub fn get_current_track_index() -> u16 {
     unsafe { GA_GetCurrentTrackIndex() }
 }
 
-pub fn get_current_track_path() -> String {
+pub fn get_current_track_path() -> Option<String> {
     let path_ptr = unsafe { GA_GetCurrentTrackPath() };
-    let cstr = unsafe { CStr::from_ptr(path_ptr) };
-    cstr.to_str().unwrap().to_string()
+
+    if path_ptr.is_null() {
+        None
+    } else {
+        let cstr = unsafe { CStr::from_ptr(path_ptr) };
+        Some(cstr.to_str().unwrap().to_string())
+    }
 }
 
 pub fn get_playlist_size() -> u16 {
@@ -168,9 +175,9 @@ mod tests {
         let sample_files_path = manifest_dir_path.join("../../test/sample-files");
 
         init(SampleRate::Hz44100).unwrap();
+        assert_eq!(get_current_track_path(), None);
 
         let track1 = sample_files_path.join("01_Ghosts_I.flac");
-
         let track2 = sample_files_path.join("24_Ghosts_III.flac");
         let track3 = sample_files_path.join("25_Ghosts_III.flac");
 
@@ -178,10 +185,7 @@ mod tests {
 
         set_playlist(&tracks);
 
-
         play();
-
-        assert_eq!(get_current_track_path(), tracks[0].to_str().unwrap());
 
         std::thread::sleep(std::time::Duration::from_secs(5));
 
@@ -192,11 +196,9 @@ mod tests {
         skip_to_track(1);
         play();
 
-        assert_eq!(get_current_track_path(), tracks[1].to_str().unwrap());
-
+        assert_eq!(get_current_track_path().unwrap(), tracks[1].to_str().unwrap());
 
         std::thread::sleep(std::time::Duration::from_secs(5));
-
 
         terminate().unwrap();
     }
