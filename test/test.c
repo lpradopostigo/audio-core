@@ -14,71 +14,71 @@ const char* playlist[] = {
 const uint16_t playlist_size = 3;
 
 TEST(basic, {
-	ASSERT("init", GA_Init(44100) == GA_RESULT_OK);
-	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
+	ASSERT("init", ga_init(44100) == GA_RESULT_OK);
+	ASSERT("terminate", ga_terminate() == GA_RESULT_OK);
 })
 
 TEST(basic_playback, {
-	ASSERT("init", GA_Init(44100) == GA_RESULT_OK);
+	ASSERT("init", ga_init(44100) == GA_RESULT_OK);
 
-	GA_SetPlaylist(playlist, playlist_size);
-	ASSERT("set playlist", GA_GetPlaylistSize() == playlist_size);
+	ga_set_playlist(playlist, playlist_size);
+	ASSERT("set playlist", ga_get_playlist_size() == playlist_size);
 
-	GA_Play();
-	ASSERT("play", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PLAYING);
+	ga_play();
+	ASSERT("play", ga_get_playback_state() == GA_PLAYBACK_STATE_PLAYING);
 
 	INFO("playing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_Pause();
-	ASSERT("pause", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PAUSED);
+	ga_pause();
+	ASSERT("pause", ga_get_playback_state() == GA_PLAYBACK_STATE_PAUSED);
 	INFO("pausing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_SkipToTrack(1);
-	ASSERT("skip to track 1", GA_GetCurrentTrackIndex() == 1);
+	ga_skip_to_track(1);
+	ASSERT("skip to track 1", ga_get_current_track_index() == 1);
 	INFO("playing audio after skip for 5 seconds");
 	Sleep(5000);
 
-	GA_Pause();
-	ASSERT("pause", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PAUSED);
+	ga_pause();
+	ASSERT("pause", ga_get_playback_state() == GA_PLAYBACK_STATE_PAUSED);
 	INFO("pausing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_Seek(155);
-	ASSERT("seek", GA_GetTrackPosition() == 155);
-	GA_Play();
+	ga_seek(155);
+	ASSERT("seek", ga_get_track_position() == 155);
+	ga_play();
 	INFO("playing audio after seek for 15 seconds, no gaps should be heard");
 	Sleep(15000);
 
-	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
+	ASSERT("terminate", ga_terminate() == GA_RESULT_OK);
 })
 
 TEST(playlist_end, {
-	ASSERT("init", GA_Init(44100) == GA_RESULT_OK);
+	ASSERT("init", ga_init(44100) == GA_RESULT_OK);
 
-	GA_SetPlaylist(playlist, playlist_size);
-	ASSERT("set playlist", GA_GetPlaylistSize() == playlist_size);
-	ASSERT("current track index", GA_GetCurrentTrackIndex() == 0);
+	ga_set_playlist(playlist, playlist_size);
+	ASSERT("set playlist", ga_get_playlist_size() == playlist_size);
+	ASSERT("current track index", ga_get_current_track_index() == 0);
 
-	GA_Play();
-	ASSERT("play", GA_GetPlaybackState() == GA_PLAYBACK_STATE_PLAYING);
+	ga_play();
+	ASSERT("play", ga_get_playback_state() == GA_PLAYBACK_STATE_PLAYING);
 
 	INFO("playing audio for 5 seconds");
 	Sleep(5000);
 
-	GA_SkipToTrack(2);
-	ASSERT("skip to track 2", GA_GetCurrentTrackIndex() == 2);
+	ga_skip_to_track(2);
+	ASSERT("skip to track 2", ga_get_current_track_index() == 2);
 	Sleep(5000);
 
-	GA_Seek(110);
-	ASSERT("seek to 110", GA_GetTrackPosition() == 110);
+	ga_seek(110);
+	ASSERT("seek to 110", ga_get_track_position() == 110);
 
 	Sleep(10000);
-	ASSERT("stopped", GA_GetPlaybackState() == GA_PLAYBACK_STATE_STOPPED);
-	ASSERT("current track index 0", GA_GetCurrentTrackIndex() == 0);
+	ASSERT("stopped", ga_get_playback_state() == GA_PLAYBACK_STATE_STOPPED);
+	ASSERT("current track index 0", ga_get_current_track_index() == 0);
 
-	ASSERT("terminate", GA_Terminate() == GA_RESULT_OK);
+	ASSERT("terminate", ga_terminate() == GA_RESULT_OK);
 })
 
 static char* all_tests(void) {

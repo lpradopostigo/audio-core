@@ -15,7 +15,7 @@ fn main() {
     let headers_path = grass_audio_dist_path.join("grass_audio.h");
     let headers_path_str = headers_path.to_str().expect("Path is not a valid string");
 
-    let lib_prefix_expr = "GA_.*";
+    let lib_prefix_expr = "ga_.*";
 
     let bindings = bindgen::Builder::default()
         .header(headers_path_str)

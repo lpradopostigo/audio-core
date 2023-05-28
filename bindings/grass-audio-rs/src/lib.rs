@@ -29,7 +29,7 @@ pub enum Error {
 pub fn init(sample_rate: SampleRate) -> Result<(), Error> {
     let result;
     unsafe {
-        result = GA_Init(sample_rate as u32);
+        result = ga_init(sample_rate as u32);
     }
 
     if result == GA_RESULT_OK {
@@ -42,7 +42,7 @@ pub fn init(sample_rate: SampleRate) -> Result<(), Error> {
 pub fn terminate() -> Result<(), Error> {
     let result;
     unsafe {
-        result = GA_Terminate();
+        result = ga_terminate();
     }
 
     if result == GA_RESULT_OK {
@@ -66,7 +66,7 @@ pub fn set_playlist<T: AsRef<Path>>(playlist: &[T]) {
     ptr_playlist.push(null());
 
     unsafe {
-        GA_SetPlaylist(
+        ga_set_playlist(
             ptr_playlist.as_ptr() as *const *const c_char,
             playlist.len() as u16,
         );
@@ -75,62 +75,62 @@ pub fn set_playlist<T: AsRef<Path>>(playlist: &[T]) {
 
 pub fn play() {
     unsafe {
-        GA_Play();
+        ga_play();
     }
 }
 
 pub fn pause() {
     unsafe {
-        GA_Pause();
+        ga_pause();
     }
 }
 
 pub fn stop() {
     unsafe {
-        GA_Stop();
+        ga_stop();
     }
 }
 
 pub fn previous() {
     unsafe {
-        GA_Previous();
+        ga_previous();
     }
 }
 
 pub fn next() {
     unsafe {
-        GA_Next();
+        ga_next();
     }
 }
 
 pub fn set_volume(volume: f32) {
     unsafe {
-        GA_SetVolume(volume);
+        ga_set_volume(volume);
     }
 }
 
 pub fn get_volume() -> f32 {
-    unsafe { GA_GetVolume() }
+    unsafe { ga_get_volume() }
 }
 
 pub fn seek(position: f64) {
     unsafe {
-        GA_Seek(position);
+        ga_seek(position);
     }
 }
 
 pub fn skip_to_track(index: i16) {
     unsafe {
-        GA_SkipToTrack(index);
+        ga_skip_to_track(index);
     }
 }
 
 pub fn get_current_track_index() -> u16 {
-    unsafe { GA_GetCurrentTrackIndex() }
+    unsafe { ga_get_current_track_index() }
 }
 
 pub fn get_current_track_path() -> Option<String> {
-    let path_ptr = unsafe { GA_GetCurrentTrackPath() };
+    let path_ptr = unsafe { ga_get_current_track_path() };
 
     if path_ptr.is_null() {
         None
@@ -141,12 +141,12 @@ pub fn get_current_track_path() -> Option<String> {
 }
 
 pub fn get_playlist_size() -> u16 {
-    unsafe { GA_GetPlaylistSize() }
+    unsafe { ga_get_playlist_size() }
 }
 
 pub fn get_playback_state() -> PlaybackState {
     let state;
-    unsafe { state = GA_GetPlaybackState(); }
+    unsafe { state = ga_get_playback_state(); }
 
     match state {
         GA_PLAYBACK_STATE_STOPPED => PlaybackState::Stopped,
@@ -157,11 +157,11 @@ pub fn get_playback_state() -> PlaybackState {
 }
 
 pub fn get_track_position() -> f64 {
-    unsafe { GA_GetTrackPosition() }
+    unsafe { ga_get_track_position() }
 }
 
 pub fn get_track_length() -> f64 {
-    unsafe { GA_GetTrackLength() }
+    unsafe { ga_get_track_length() }
 }
 
 
