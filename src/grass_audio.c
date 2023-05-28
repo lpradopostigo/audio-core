@@ -132,7 +132,7 @@ void ga_stop(void) {
 	player->playlist_index = 0;
 }
 
-void ga_skip_to_track(int16_t index) {
+void ga_skip_to(int16_t index) {
 	if (!player || !player->playlist) return;
 
 	enum GAPlaybackState playback_state = ga_get_playback_state();
@@ -162,12 +162,12 @@ void ga_seek(double position) {
 
 void ga_next(void) {
 	if (!player) return;
-	ga_skip_to_track((int16_t)(player->playlist_index + 1));
+	ga_skip_to((int16_t)(player->playlist_index + 1));
 }
 
 void ga_previous(void) {
 	if (!player) return;
-	ga_skip_to_track((int16_t)(player->playlist_index - 1));
+	ga_skip_to((int16_t)(player->playlist_index - 1));
 }
 
 void ga_set_volume(float volume) {
@@ -183,12 +183,12 @@ float ga_get_volume(void) {
 	return BASS_ErrorGetCode() ? 0 : volume;
 }
 
-uint16_t ga_get_current_track_index(void) {
+uint16_t ga_get_playlist_index(void) {
 	if (!player) return 0;
 	return player->playlist_index;
 }
 
-const char* ga_get_current_track_path(void) {
+const char* ga_get_playlist_path(void) {
 	if (!player || !player->playlist) return NULL;
 	const char* path = utf_16_to_utf_8(player->playlist[player->playlist_index]);
 	return path;
@@ -212,13 +212,13 @@ enum GAPlaybackState ga_get_playback_state(void) {
 
 }
 
-double ga_get_track_position(void) {
+double ga_get_position(void) {
 	if (!player || !player->stream) return 0;
 	QWORD position = BASS_Mixer_ChannelGetPosition(player->stream, BASS_POS_BYTE);
 	return BASS_ChannelBytes2Seconds(player->stream, position);
 }
 
-double ga_get_track_length(void) {
+double ga_get_length(void) {
 	if (!player || !player->stream) return 0;
 
 	QWORD length = BASS_ChannelGetLength(player->stream, BASS_POS_BYTE);

@@ -32,12 +32,12 @@ TEST(basic_playback, {
 	ASSERT("playback state should be paused", ga_get_playback_state() == GA_PLAYBACK_STATE_PAUSED);
 	Sleep(5000);
 
-	ga_skip_to_track(1);
-	ASSERT("playlist index should be 1", ga_get_current_track_index() == 1);
+	ga_skip_to(1);
+	ASSERT("playlist index should be 1", ga_get_playlist_index() == 1);
 	Sleep(5000);
 
 	ga_seek(155);
-	ASSERT("playback position should be 155", ga_get_track_position() == 155);
+	ASSERT("playback position should be 155", ga_get_position() == 155);
 
 	ga_play();
 	ASSERT("playback state should be playing", ga_get_playback_state() == GA_PLAYBACK_STATE_PLAYING);
@@ -51,19 +51,19 @@ TEST(playlist_end, {
 	ASSERT("init", ga_init(44100) == GA_RESULT_OK);
 
 	ga_set_playlist(playlist, playlist_size);
-	ASSERT("current playlist index should be 0", ga_get_current_track_index() == 0);
+	ASSERT("current playlist index should be 0", ga_get_playlist_index() == 0);
 
 	ga_play();
 	INFO("playing audio for 5 seconds");
 	ASSERT("playback state should be playing", ga_get_playback_state() == GA_PLAYBACK_STATE_PLAYING);
 	Sleep(5000);
 
-	ga_skip_to_track(2);
-	ASSERT("current playlist index should be 2", ga_get_current_track_index() == 2);
+	ga_skip_to(2);
+	ASSERT("current playlist index should be 2", ga_get_playlist_index() == 2);
 	Sleep(5000);
 
 	ga_seek(110);
-	ASSERT("current position should be 110", ga_get_track_position() == 110);
+	ASSERT("current position should be 110", ga_get_position() == 110);
 	Sleep(10000);
 
 	ASSERT("playback state should be stopped", ga_get_playback_state() == GA_PLAYBACK_STATE_STOPPED);
@@ -71,7 +71,7 @@ TEST(playlist_end, {
 
 	ga_play();
 	INFO("playing audio for 5 seconds after playlist end");
-	ASSERT("current playlist index should be 0", ga_get_current_track_index() == 0);
+	ASSERT("current playlist index should be 0", ga_get_playlist_index() == 0);
 	Sleep(5000);
 
 	ASSERT("terminate", ga_terminate() == GA_RESULT_OK);
