@@ -6,14 +6,12 @@
 wchar_t* utf_8_to_utf_16(const char* utf8);
 char* utf_16_to_utf_8(const wchar_t* utf16);
 uint16_t resolve_index(int16_t index, uint16_t size);
-void set_track_end_sync(void);
 void handle_track_end_sync(void);
 void load_stream(wchar_t* path);
 
 struct Player {
   uint32_t stream;
   uint32_t mixer_stream;
-  uint32_t track_end_sync_handler;
   uint32_t sample_rate;
   wchar_t** playlist;
   uint16_t playlist_size;
@@ -34,19 +32,15 @@ static uint8_t plugins_size = sizeof(plugins) / sizeof(struct Plugin);
 static struct Player* player = NULL;
 
 enum GAResult ga_init(uint32_t sample_rate) {
-	// don't init twice
-	if (player != NULL) return GA_RESULT_ERROR;
+	if (player) return GA_RESULT_ERROR;
 
-	// load BASS plugins
 	for (uint8_t i = 0; i < plugins_size; i++) {
 		plugins[i].handle = BASS_PluginLoad(plugins[i].path, 0);
 		if (plugins[i].handle == 0) return GA_RESULT_ERROR;
 	}
 
-	// init bass
 	if (!BASS_Init(-1, sample_rate, 0, NULL, NULL)) return GA_RESULT_ERROR;
 
-	// init player
 	player = (struct Player*)malloc(sizeof(struct Player));
 	player->sample_rate = sample_rate;
 	player->stream = 0;
@@ -54,25 +48,20 @@ enum GAResult ga_init(uint32_t sample_rate) {
 	player->playlist = NULL;
 	player->playlist_size = 0;
 	player->playlist_index = 0;
-	player->track_end_sync_handler = 0;
 
 	return GA_RESULT_OK;
 }
 
 enum GAResult ga_terminate(void) {
-	// don't terminate twice
-	if (player == NULL) return GA_RESULT_ERROR;
+	if (!player) return GA_RESULT_ERROR;
 
-	// free bass plugins
 	for (uint8_t i = 0; i < plugins_size; i++) {
 		if (!BASS_PluginFree(plugins[i].handle)) return GA_RESULT_ERROR;
 		plugins[i].handle = 0;
 	}
 
-	// free bass
 	if (!BASS_Free()) return GA_RESULT_ERROR;
 
-	// free player
 	for (uint16_t i = 0; i < player->playlist_size; i++) {
 		free((void*)player->playlist[i]);
 	}
@@ -84,19 +73,14 @@ enum GAResult ga_terminate(void) {
 }
 
 void ga_set_playlist(char const* const* playlist, uint16_t playlist_size) {
-	if (player == NULL) return;
+	if (!player) return;
 
-	// free old mixer stream and its resources
-	if (player->mixer_stream != 0) {
+	if (player->mixer_stream) {
 		BASS_StreamFree(player->mixer_stream);
 		player->stream = 0;
-		player->track_end_sync_handler = 0;
+		player->mixer_stream = 0;
 	}
 
-	// replace mixer stream
-	player->mixer_stream = BASS_Mixer_StreamCreate(player->sample_rate, 2, BASS_MIXER_END);
-
-	// free old playlist
 	if (player->playlist != NULL) {
 		for (uint16_t i = 0; i < player->playlist_size; i++) {
 			free((void*)player->playlist[i]);
@@ -104,63 +88,72 @@ void ga_set_playlist(char const* const* playlist, uint16_t playlist_size) {
 		free((void*)player->playlist);
 	}
 
-	// create new playlist
 	wchar_t** new_playlist = (wchar_t**)malloc(sizeof(wchar_t*) * playlist_size);
 
 	for (uint16_t i = 0; i < playlist_size; i++) {
 		new_playlist[i] = utf_8_to_utf_16(playlist[i]);
 	}
 
-	// replace playlist
 	player->playlist = new_playlist;
 	player->playlist_size = playlist_size;
 	player->playlist_index = 0;
 }
 
 void ga_play(void) {
-	if (player == NULL || player->playlist == NULL) return;
+	if (!player || !player->playlist) return;
 
-	if (player->stream == 0) {
+	if (!player->mixer_stream) {
+		player->mixer_stream = BASS_Mixer_StreamCreate(player->sample_rate, 2, BASS_MIXER_END | BASS_STREAM_AUTOFREE);
+		BASS_ChannelSetSync(player->mixer_stream,
+				BASS_SYNC_END | BASS_SYNC_MIXTIME | BASS_SYNC_THREAD,
+				0,
+				(void (*)(HSYNC, DWORD, DWORD, void*))&handle_track_end_sync,
+				NULL);
 		load_stream(player->playlist[player->playlist_index]);
-		set_track_end_sync();
 	}
 
 	BASS_ChannelPlay(player->mixer_stream, FALSE);
 }
 
-void ga_stop(void) {
-	if (player == NULL) return;
+void ga_pause(void) {
+	if (!player || !player->playlist || !player->mixer_stream) return;
+	BASS_ChannelPause(player->mixer_stream);
+}
 
-	// free the mixer and its resources
-	if (player->mixer_stream != 0) {
+void ga_stop(void) {
+	if (!player) return;
+
+	if (player->mixer_stream) {
 		BASS_StreamFree(player->mixer_stream);
 		player->mixer_stream = 0;
 		player->stream = 0;
-		player->track_end_sync_handler = 0;
 	}
 
 	player->playlist_index = 0;
 }
 
 void ga_skip_to_track(int16_t index) {
-	if (player == NULL || player->playlist == NULL) return;
-	BASS_ChannelRemoveSync(player->mixer_stream, player->track_end_sync_handler);
-	player->track_end_sync_handler = 0;
-	BASS_Mixer_ChannelRemove(player->stream);
-	player->stream = 0;
-	player->playlist_index = resolve_index(index, player->playlist_size);
-	load_stream(player->playlist[player->playlist_index]);
-	set_track_end_sync();
-	BASS_ChannelPlay(player->mixer_stream, FALSE);
-}
+	if (!player || !player->playlist) return;
 
-void ga_pause(void) {
-	if (player == NULL || player->stream == 0 || player->playlist == NULL) return;
-	BASS_ChannelPause(player->mixer_stream);
+	enum GAPlaybackState playback_state = ga_get_playback_state();
+
+	player->playlist_index = resolve_index(index, player->playlist_size);
+
+	if (playback_state == GA_PLAYBACK_STATE_STOPPED) {
+		return;
+	}
+
+	BASS_Mixer_ChannelRemove(player->stream);
+	load_stream(player->playlist[player->playlist_index]);
+
+	if (playback_state == GA_PLAYBACK_STATE_PLAYING) {
+		BASS_ChannelPlay(player->mixer_stream, FALSE);
+	}
+
 }
 
 void ga_seek(double position) {
-	if (player == NULL || player->stream == 0) return;
+	if (!player || !player->stream) return;
 
 	BASS_Mixer_ChannelSetPosition(player->stream,
 			BASS_ChannelSeconds2Bytes(player->stream, position),
@@ -168,22 +161,22 @@ void ga_seek(double position) {
 }
 
 void ga_next(void) {
-	if (player == NULL) return;
+	if (!player) return;
 	ga_skip_to_track((int16_t)(player->playlist_index + 1));
 }
 
 void ga_previous(void) {
-	if (player == NULL) return;
+	if (!player) return;
 	ga_skip_to_track((int16_t)(player->playlist_index - 1));
 }
 
 void ga_set_volume(float volume) {
-	if (player == NULL) return;
+	if (!player) return;
 	BASS_ChannelSetAttribute(player->mixer_stream, BASS_ATTRIB_VOL, volume);
 }
 
 float ga_get_volume(void) {
-	if (player == NULL) return 0;
+	if (!player) return 0;
 
 	float volume;
 	BASS_ChannelGetAttribute(player->mixer_stream, BASS_ATTRIB_VOL, &volume);
@@ -191,23 +184,23 @@ float ga_get_volume(void) {
 }
 
 uint16_t ga_get_current_track_index(void) {
-	if (player == NULL) return 0;
+	if (!player) return 0;
 	return player->playlist_index;
 }
 
 const char* ga_get_current_track_path(void) {
-	if (player == NULL || player->playlist == NULL) return NULL;
+	if (!player || !player->playlist) return NULL;
 	const char* path = utf_16_to_utf_8(player->playlist[player->playlist_index]);
 	return path;
 }
 
 uint16_t ga_get_playlist_size(void) {
-	if (player == NULL) return 0;
+	if (!player) return 0;
 	return player->playlist_size;
 }
 
 enum GAPlaybackState ga_get_playback_state(void) {
-	if (player == NULL) return GA_PLAYBACK_STATE_STOPPED;
+	if (!player || !player->mixer_stream) return GA_PLAYBACK_STATE_STOPPED;
 
 	uint32_t playback_state = BASS_ChannelIsActive(player->mixer_stream);
 
@@ -220,24 +213,16 @@ enum GAPlaybackState ga_get_playback_state(void) {
 }
 
 double ga_get_track_position(void) {
-	if (player == NULL || player->stream == 0) return 0;
+	if (!player || !player->stream) return 0;
 	QWORD position = BASS_Mixer_ChannelGetPosition(player->stream, BASS_POS_BYTE);
 	return BASS_ChannelBytes2Seconds(player->stream, position);
 }
 
 double ga_get_track_length(void) {
-	if (player == NULL || player->stream == 0) return 0;
+	if (!player || !player->stream) return 0;
 
 	QWORD length = BASS_ChannelGetLength(player->stream, BASS_POS_BYTE);
 	return BASS_ChannelBytes2Seconds(player->stream, length);
-}
-
-void set_track_end_sync(void) {
-	player->track_end_sync_handler = BASS_ChannelSetSync(player->mixer_stream,
-			BASS_SYNC_END | BASS_SYNC_MIXTIME | BASS_SYNC_THREAD,
-			0,
-			(void (*)(HSYNC, DWORD, DWORD, void*))&handle_track_end_sync,
-			NULL);
 }
 
 void load_stream(wchar_t* path) {
@@ -255,6 +240,8 @@ void load_stream(wchar_t* path) {
 void handle_track_end_sync(void) {
 	if (player->playlist_index == player->playlist_size - 1) {
 		player->playlist_index = 0;
+		player->stream = 0;
+		player->mixer_stream = 0;
 		return;
 	};
 
