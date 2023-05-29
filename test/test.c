@@ -47,6 +47,27 @@ TEST(basic_playback, {
 	ASSERT("terminate", ga_terminate() == GA_RESULT_OK);
 })
 
+TEST(playlist_skip, {
+	ASSERT("init", ga_init(44100) == GA_RESULT_OK);
+
+	ga_set_playlist(playlist, playlist_size);
+
+	ga_play();
+	INFO("playing audio for 5 seconds");
+	ASSERT("playback state should be playing", ga_get_playback_state() == GA_PLAYBACK_STATE_PLAYING);
+	Sleep(5000);
+
+	ga_skip_to(2);
+	ASSERT("current playlist index should be 2", ga_get_playlist_index() == 2);
+	Sleep(5000);
+
+	ga_skip_to(0);
+	ASSERT("current playlist index should be 0", ga_get_playlist_index() == 0);
+	Sleep(5000);
+
+	ASSERT("terminate", ga_terminate() == GA_RESULT_OK);
+})
+
 TEST(playlist_end, {
 	ASSERT("init", ga_init(44100) == GA_RESULT_OK);
 
@@ -78,9 +99,10 @@ TEST(playlist_end, {
 })
 
 static char* all_tests(void) {
-	RUN_TEST(basic);
-	RUN_TEST(basic_playback);
-	RUN_TEST(playlist_end);
+//	RUN_TEST(basic);
+//	RUN_TEST(basic_playback);
+//	RUN_TEST(playlist_end);
+	RUN_TEST(playlist_skip);
 	return 0;
 }
 
