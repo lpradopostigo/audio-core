@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED TRUE)
 set(DIST_DIR ${CMAKE_SOURCE_DIR}/dist)
 
 if (MSVC)
-    add_compile_options(/W4)
+    add_compile_options(/W4 /WX)
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 else ()
     add_compile_options(-Wall -Wextra -pedantic -Werror)

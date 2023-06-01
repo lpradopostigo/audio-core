@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define UNUSED(x) (void)(x)
+
 void load_stream(struct GaPlayer* player);
 void handle_track_end_sync(HSYNC handle, DWORD channel, DWORD data, void* user);
 
@@ -180,6 +182,10 @@ void load_stream(struct GaPlayer* player) {
 }
 
 void handle_track_end_sync(HSYNC handle, DWORD channel, DWORD data, void* user) {
+	UNUSED(handle);
+	UNUSED(channel);
+	UNUSED(data);
+
 	struct GaPlayer* player = (struct GaPlayer*)user;
 
 	if (player->source_index == player->sources->size - 1) {
