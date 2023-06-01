@@ -1,9 +1,8 @@
 use grass_audio_sys::*;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::os::raw::c_char;
 use std::path::Path;
 use std::ptr::null;
-use std::sync::Mutex;
 
 #[derive(Debug, Clone)]
 pub enum SampleRate {
@@ -14,6 +13,46 @@ pub enum SampleRate {
     Hz192000 = 192000,
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum AudioOutputError {
+    #[error("failed to initialize audio output")]
+    InitFailed,
+    #[error("failed to close audio output")]
+    CloseFailed,
+}
+
+pub type AudioOutputResult<T> = Result<T, AudioOutputError>;
+
+pub struct AudioOutput;
+
+impl AudioOutput {
+    pub fn init(sample_rate: SampleRate) -> AudioOutputResult<()> {
+        let result;
+        unsafe {
+            result = ga_audio_output_init(sample_rate as u32);
+        }
+
+        if result == GA_RESULT_OK {
+            Ok(())
+        } else {
+            Err(AudioOutputError::InitFailed)
+        }
+    }
+
+    pub fn close() -> AudioOutputResult<()> {
+        let result;
+        unsafe {
+            result = ga_audio_output_close();
+        }
+
+        if result == GA_RESULT_OK {
+            Ok(())
+        } else {
+            Err(AudioOutputError::CloseFailed)
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum PlaybackState {
     Stopped,
@@ -22,277 +61,165 @@ pub enum PlaybackState {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum GrassAudioError {
-    #[error("Failed to initialize grass audio")]
-    InitFailed,
-    #[error("Failed to terminate grass audio")]
-    TerminateFailed,
-    #[error("Failed to set playlist")]
+pub enum PlayerError {
+    #[error("invalid path")]
     InvalidPath,
-    #[error("Failed to lock resource")]
-    LockResourceFailed,
-    #[error("Unknown error")]
-    Unknown,
+    #[error("internal error")]
+    Internal,
 }
 
-type GrassAudioResult<T> = Result<T, GrassAudioError>;
+type PlayerResult<T> = Result<T, PlayerError>;
 
-// since the underlying  library is not thread-safe, we need to lock it
-static PLAYER_MUTEX: Mutex<()> = Mutex::new(());
+pub struct Player {
+    inner: *mut GaPlayer,
+}
 
-pub struct GrassAudio;
+impl Player {
+    pub fn new(sample_rate: SampleRate) -> PlayerResult<Self> {
+        let inner;
+        unsafe {
+            inner = ga_new_player(sample_rate as u32);
+        }
 
-impl GrassAudio {
-    pub fn init(sample_rate: SampleRate) -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            let result;
-            unsafe {
-                result = ga_init(sample_rate as u32);
-            }
+        if inner.is_null() {
+            Err(PlayerError::Internal)
+        } else {
+            Ok(Self { inner })
+        }
+    }
 
-            if result == GA_RESULT_OK {
-                Ok(())
+    pub fn set_sources<T: AsRef<Path>>(&self, paths: &[T]) -> PlayerResult<()> {
+        let mut cstr_paths = Vec::with_capacity(paths.len());
+
+        for path in paths.iter() {
+            if let Some(path_str) = path.as_ref().as_os_str().to_str() {
+                cstr_paths.push(CString::new(path_str).map_err(|_| PlayerError::InvalidPath)?);
             } else {
-                Err(GrassAudioError::InitFailed)
+                return Err(PlayerError::InvalidPath);
             }
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+        }
+
+        let mut paths_ptr: Vec<_> = cstr_paths.iter().map(|track| track.as_ptr()).collect();
+
+        paths_ptr.push(null());
+
+        unsafe {
+            if ga_player_set_sources(
+                self.inner,
+                paths_ptr.as_ptr() as *mut *const c_char,
+                paths.len(),
+            ) != GA_RESULT_OK
+            {
+                return Err(PlayerError::Internal);
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn play(&self) {
+        unsafe {
+            ga_player_play(self.inner);
         }
     }
 
-    pub fn terminate() -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            let result;
-            unsafe {
-                result = ga_terminate();
-            }
-
-            if result == GA_RESULT_OK {
-                Ok(())
-            } else {
-                Err(GrassAudioError::TerminateFailed)
-            }
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+    pub fn pause(&self) {
+        unsafe {
+            ga_player_pause(self.inner);
         }
     }
 
-    pub fn set_playlist<T: AsRef<Path>>(playlist: &[T]) -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            let mut cstr_playlist = Vec::with_capacity(playlist.len());
-
-            for path in playlist.iter() {
-                if let Some(path_str) = path.as_ref().as_os_str().to_str() {
-                    cstr_playlist
-                        .push(CString::new(path_str).map_err(|_| GrassAudioError::InvalidPath)?);
-                } else {
-                    return Err(GrassAudioError::InvalidPath);
-                }
-            }
-
-            let mut ptr_playlist: Vec<_> =
-                cstr_playlist.iter().map(|track| track.as_ptr()).collect();
-
-            ptr_playlist.push(null());
-
-            unsafe {
-                ga_set_playlist(
-                    ptr_playlist.as_ptr() as *const *const c_char,
-                    playlist.len() as u16,
-                );
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+    pub fn stop(&self) {
+        unsafe {
+            ga_player_stop(self.inner);
         }
     }
 
-    pub fn play() -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_play();
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+    pub fn seek(&self, position: f64) {
+        unsafe {
+            ga_player_seek(self.inner, position);
         }
     }
 
-    pub fn pause() -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_pause();
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+    pub fn skip_to(&self, index: usize) {
+        unsafe {
+            ga_player_skip_to(self.inner, index);
         }
     }
 
-    pub fn stop() -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_stop();
-            }
+    pub fn playback_state(&self) -> PlaybackState {
+        let state;
+        unsafe {
+            state = ga_player_get_playback_state(self.inner);
+        }
 
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+        match state {
+            GA_PLAYER_PLAYBACK_STATE_STOPPED => PlaybackState::Stopped,
+            GA_PLAYER_PLAYBACK_STATE_PLAYING => PlaybackState::Playing,
+            GA_PLAYER_PLAYBACK_STATE_PAUSED => PlaybackState::Paused,
+            _ => unreachable!(),
         }
     }
 
-    pub fn previous() -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_previous();
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn next() -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_next();
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn set_volume(volume: f32) -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_set_volume(volume);
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn get_volume() -> GrassAudioResult<f32> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            Ok(unsafe { ga_get_volume() })
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn seek(position: f64) -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_seek(position);
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn skip_to(index: i16) -> GrassAudioResult<()> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            unsafe {
-                ga_skip_to(index);
-            }
-
-            Ok(())
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn get_playlist_index() -> GrassAudioResult<u16> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            Ok(unsafe { ga_get_playlist_index() })
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
-    }
-
-    pub fn get_playlist_path() -> GrassAudioResult<Option<String>> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            let path_ptr = unsafe { ga_get_playlist_path() };
+    pub fn source_path(&self) -> PlayerResult<Option<String>> {
+        let path;
+        unsafe {
+            let path_ptr = ga_player_get_source_path(self.inner);
 
             if path_ptr.is_null() {
-                Ok(None)
+                return Ok(None);
             } else {
-                let cstr = unsafe { CStr::from_ptr(path_ptr) };
-                Ok(Some(
-                    cstr.to_str()
-                        .map_err(|_| GrassAudioError::InvalidPath)?
-                        .to_string(),
-                ))
+                path = std::ffi::CStr::from_ptr(path_ptr)
             }
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
         }
+
+        Ok(Some(
+            path.to_str()
+                .map_err(|_| PlayerError::InvalidPath)?
+                .to_string(),
+        ))
     }
 
-    pub fn get_playlist_size() -> GrassAudioResult<u16> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            Ok(unsafe { ga_get_playlist_size() })
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
+    pub fn source_index(&self) -> usize {
+        unsafe { ga_player_get_source_index(self.inner) }
     }
 
-    pub fn get_playback_state() -> GrassAudioResult<PlaybackState> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            let state;
-            unsafe {
-                state = ga_get_playback_state();
-            }
-
-            match state {
-                GA_PLAYBACK_STATE_STOPPED => Ok(PlaybackState::Stopped),
-                GA_PLAYBACK_STATE_PLAYING => Ok(PlaybackState::Playing),
-                GA_PLAYBACK_STATE_PAUSED => Ok(PlaybackState::Paused),
-                _ => Err(GrassAudioError::Unknown),
-            }
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
+    pub fn sources_size(&self) -> usize {
+        unsafe { ga_player_get_sources_size(self.inner) }
     }
 
-    pub fn get_position() -> GrassAudioResult<f64> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            Ok(unsafe { ga_get_position() })
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
-        }
+    pub fn source_position(&self) -> f64 {
+        unsafe { ga_player_get_source_position(self.inner) }
     }
 
-    pub fn get_length() -> GrassAudioResult<f64> {
-        if PLAYER_MUTEX.lock().is_ok() {
-            Ok(unsafe { ga_get_length() })
-        } else {
-            Err(GrassAudioError::LockResourceFailed)
+    pub fn source_duration(&self) -> f64 {
+        unsafe { ga_player_get_source_duration(self.inner) }
+    }
+}
+
+impl Drop for Player {
+    fn drop(&mut self) {
+        unsafe {
+            ga_free_player(self.inner);
         }
     }
 }
+
+unsafe impl Send for Player {}
+unsafe impl Sync for Player {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn basic_playback() -> GrassAudioResult<()> {
+    fn basic_playback() -> PlayerResult<()> {
         let manifest_dir_path = Path::new(env!("CARGO_MANIFEST_DIR"));
         let sample_files_path = manifest_dir_path.join("../../test/sample-files");
 
-        GrassAudio::init(SampleRate::Hz44100).unwrap();
-        assert_eq!(GrassAudio::get_playlist_path()?, None);
+        AudioOutput::init(SampleRate::Hz44100).expect("failed to initialize audio output");
+
+        let player = Player::new(SampleRate::Hz44100)?;
 
         let track1 = sample_files_path.join("01_Ghosts_I.flac");
         let track2 = sample_files_path.join("24_Ghosts_III.flac");
@@ -300,28 +227,17 @@ mod tests {
 
         let tracks = vec![track1, track2, track3];
 
-        GrassAudio::set_playlist(&tracks)?;
+        player.set_sources(&tracks)?;
 
-        GrassAudio::play()?;
-
-        std::thread::sleep(std::time::Duration::from_secs(5));
-
-        GrassAudio::pause()?;
+        player.play();
 
         std::thread::sleep(std::time::Duration::from_secs(5));
 
-        GrassAudio::skip_to(1)?;
-        GrassAudio::play()?;
-
-        assert_eq!(
-            GrassAudio::get_playlist_path()?.unwrap(),
-            tracks[1].to_str().unwrap()
-        );
+        player.pause();
 
         std::thread::sleep(std::time::Duration::from_secs(5));
 
-        GrassAudio::terminate().unwrap();
-
+        AudioOutput::close().expect("failed to close audio output");
         Ok(())
     }
 }
