@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
-#include "ga_source.h"
+#include "gp_source.h"
 
-const wchar_t* utf_8_to_utf_16(const char* utf8) {
+const wchar_t* gp_utf_8_to_utf_16(const char* utf8) {
 	const int utf8_length = (int)strlen(utf8);
 	const int wstr_length = MultiByteToWideChar(CP_UTF8, 0, utf8, utf8_length, NULL, 0);
 
@@ -17,8 +17,8 @@ const wchar_t* utf_8_to_utf_16(const char* utf8) {
 	return wstr;
 }
 
-struct GaSource* ga_new_source(const char* path) {
-	struct GaSource* source = malloc(sizeof(struct GaSource));
+struct GpSource* gp_new_source(const char* path) {
+	struct GpSource* source = malloc(sizeof(struct GpSource));
 	if (source == NULL) return NULL;
 
 	source->size = strlen(path);
@@ -31,7 +31,7 @@ struct GaSource* ga_new_source(const char* path) {
 
 	memcpy((void*)source->path, path, source->size + 1);
 
-	source->wpath = utf_8_to_utf_16(source->path);
+	source->wpath = gp_utf_8_to_utf_16(source->path);
 
 	if (source->wpath == NULL) {
 		free((void*)source->path);
@@ -42,7 +42,7 @@ struct GaSource* ga_new_source(const char* path) {
 	return source;
 }
 
-void ga_free_source(struct GaSource* source) {
+void gp_free_source(struct GpSource* source) {
 	if (source == NULL) return;
 
 	free((void*)source->path);

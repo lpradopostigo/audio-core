@@ -5,5 +5,5 @@ cmake-build*/
 *.zip
 
 # Rust
-bindings/grass-audio-rs/**/target
-bindings/grass-audio-rs/**/Cargo.lock
+bindings/grass-player-rs/**/target
+bindings/grass-player-rs/**/Cargo.lock

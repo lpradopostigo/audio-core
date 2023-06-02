@@ -10,10 +10,10 @@ fn main() {
         .canonicalize()
         .expect("cannot canonicalize path");
 
-    let lib_prefix_expr = "ga_.*";
+    let lib_prefix_expr = "gp_.*";
 
     let bindings = bindgen::Builder::default()
-        .header("./dist/include/grass_audio.h")
+        .header("./dist/include/grass_player.h")
         .prepend_enum_name(false)
         .allowlist_type(lib_prefix_expr)
         .allowlist_function(lib_prefix_expr)
@@ -48,5 +48,5 @@ fn main() {
     }
 
     println!("cargo:rustc-link-search=native={}", out_dir.display());
-    println!("cargo:rustc-link-lib=dylib=grass_audio");
+    println!("cargo:rustc-link-lib=dylib=grass_player");
 }

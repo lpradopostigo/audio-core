@@ -11,6 +11,6 @@ struct GaSourceList {
   size_t size;
 };
 
-struct GaSourceList* ga_new_source_list(const char** paths, size_t size);
+struct GaSourceList* gp_new_source_list(const char** paths, size_t size);
 void ga_free_source_list(struct GaSourceList* source_list);
 
